@@ -1,0 +1,14 @@
+{
+  "name": "hyungjun-cho-site",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@railway/cli": "^4.33.0",
+    "express": "^5.2.1",
+    "pg": "^8.20.0"
+  }
+}

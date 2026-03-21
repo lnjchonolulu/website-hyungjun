@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS publications (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS publications_site_year_sort_idx
-  ON publications (site_slug, year_sort_order, item_sort_order);
+CREATE INDEX IF NOT EXISTS publications_year_sort_idx
+  ON publications (year_sort_order, item_sort_order);
 
 CREATE TABLE IF NOT EXISTS publications_master (
   id TEXT PRIMARY KEY,

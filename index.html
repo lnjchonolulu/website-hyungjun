@@ -152,6 +152,42 @@
         grid-column: 1 / span 3;
       }
 
+      .about-links {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .about-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        width: fit-content;
+        color: var(--text);
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+      }
+
+      .about-link-label {
+        display: inline-block;
+      }
+
+      .about-link:hover {
+        border-bottom-color: currentColor;
+      }
+
+      .about-link-arrow {
+        width: 0.92em;
+        height: 0.92em;
+        flex: 0 0 auto;
+        stroke: currentColor;
+        stroke-width: 1.35;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        transform: translateY(-0.02em);
+      }
+
       .body-copy {
         margin: 0;
         max-width: 32ch;
@@ -739,7 +775,47 @@
           />
         </div>
         <div class="about-row">
-          <div class="section-kicker">About</div>
+          <div class="section-kicker about-links">
+            <a
+              class="about-link"
+              href="https://www.linkedin.com/in/hyungjun-cho-433505205"
+              aria-label="LinkedIn"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              <span class="about-link-label">LinkedIn</span>
+              <svg class="about-link-arrow" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M3 13L13 3"></path>
+                <path d="M8.5 3H13V7.5"></path>
+              </svg>
+            </a>
+            <a
+              class="about-link"
+              href="https://scholar.google.com/citations?user=__oeKGoAAAAJ&hl=en"
+              aria-label="Google Scholar"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              <span class="about-link-label">Google Scholar</span>
+              <svg class="about-link-arrow" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M3 13L13 3"></path>
+                <path d="M8.5 3H13V7.5"></path>
+              </svg>
+            </a>
+            <a
+              class="about-link"
+              href="https://docs.google.com/document/d/1Uh5xmxFx5hBpnMIcofcesoZaMwDLVNVfcGfiYP4Abqs/edit?usp=sharing"
+              aria-label="CV"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              <span class="about-link-label">CV</span>
+              <svg class="about-link-arrow" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M3 13L13 3"></path>
+                <path d="M8.5 3H13V7.5"></path>
+              </svg>
+            </a>
+          </div>
           <p class="body-copy">
             Hyungjun Cho is a researcher and educator working across AI, design, and human-centered
             systems. His work focuses on how intelligent tools shape perception, interaction, and

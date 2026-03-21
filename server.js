@@ -556,6 +556,15 @@ async function loadLegacyPublicationsForSite() {
 async function loadPublications() {
   const selectedIds = await loadSiteContent("publication-ids", null);
   if (!Array.isArray(selectedIds) || selectedIds.length === 0) {
+    const legacyPublications = await loadLegacyPublicationsForSite();
+    if (legacyPublications.length > 0) {
+      await savePublicationLibraryItems(legacyPublications);
+      await saveSiteContent(
+        "publication-ids",
+        legacyPublications.map((item) => item.id)
+      );
+      return groupPublicationItems(legacyPublications);
+    }
     return [];
   }
 
@@ -582,7 +591,18 @@ async function loadPublications() {
     ])
   );
 
-  return groupPublicationItems(selectedIds.map((id) => itemMap.get(id)).filter(Boolean));
+  const selectedItems = selectedIds.map((id) => itemMap.get(id)).filter(Boolean);
+  const legacyPublications = await loadLegacyPublicationsForSite();
+  if (legacyPublications.length > selectedItems.length) {
+    await savePublicationLibraryItems(legacyPublications);
+    await saveSiteContent(
+      "publication-ids",
+      legacyPublications.map((item) => item.id)
+    );
+    return groupPublicationItems(legacyPublications);
+  }
+
+  return groupPublicationItems(selectedItems);
 }
 
 async function replacePublications(publications) {
@@ -693,6 +713,11 @@ async function loadLegacyProjectsForSite() {
 async function loadProjects() {
   const selectedIds = await loadSiteContent("project-ids", null);
   if (!Array.isArray(selectedIds) || selectedIds.length === 0) {
+    const legacyProjects = await loadLegacyProjectsForSite();
+    if (legacyProjects.length > 0) {
+      await saveProjects(legacyProjects);
+      return legacyProjects;
+    }
     return [];
   }
 
@@ -720,7 +745,14 @@ async function loadProjects() {
     ])
   );
 
-  return selectedIds.map((id) => projectMap.get(id)).filter(Boolean);
+  const selectedProjects = selectedIds.map((id) => projectMap.get(id)).filter(Boolean);
+  const legacyProjects = await loadLegacyProjectsForSite();
+  if (legacyProjects.length > selectedProjects.length) {
+    await saveProjects(legacyProjects);
+    return legacyProjects;
+  }
+
+  return selectedProjects;
 }
 
 async function saveProjects(projects) {

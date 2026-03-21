@@ -1393,6 +1393,8 @@
       let publications = [];
       let aboutContent = null;
       let projects = [];
+      let publicationLibrary = [];
+      let projectLibrary = [];
       let activeTab = "home";
       let previousTabBeforeDetail = null;
       let projectDetailState = null;
@@ -1844,6 +1846,10 @@
 
       function renderEditor() {
         sortPublicationYears();
+        const selectedIds = new Set(
+          publications.flatMap((group) => group.items.map((item) => item.id).filter(Boolean))
+        );
+        const availableLibrary = publicationLibrary.filter((item) => !selectedIds.has(item.id));
         editorRoot.innerHTML = publications
           .map((group, groupIndex) => {
             const items = group.items
@@ -1884,6 +1890,37 @@
             `;
           })
           .join("");
+
+        editorRoot.innerHTML += `
+          <section class="editor-year">
+            <div class="editor-year-head">
+              <div>
+                <h3 class="editor-year-title">Add From Library</h3>
+                <div class="editor-year-badge">${availableLibrary.length} available</div>
+              </div>
+            </div>
+            ${
+              availableLibrary.length
+                ? availableLibrary
+                    .map(
+                      (item) => `
+                        <div class="editor-entry">
+                          <div>
+                            <strong>${escapeHtml(item.title)}</strong>
+                            <p class="publication-authors">${escapeHtml(item.authors)}</p>
+                            <p class="publication-meta">${escapeHtml(item.venue)}${item.award ? ` ${escapeHtml(item.award)}` : ""}</p>
+                          </div>
+                          <div class="modal-actions">
+                            <button class="action-btn" type="button" data-add-library-publication="${escapeHtml(item.id)}">Add to Site</button>
+                          </div>
+                        </div>
+                      `
+                    )
+                    .join("")
+                : '<p class="publication-authors">All library publications are already in this site.</p>'
+            }
+          </section>
+        `;
       }
 
       function renderAboutEditor() {
@@ -1929,6 +1966,9 @@
       }
 
       function renderProjectsEditor() {
+        const selectedIds = new Set(projects.map((project) => project.id));
+        const availableLibrary = projectLibrary.filter((project) => !selectedIds.has(project.id));
+
         projectsEditorRoot.innerHTML = projects
           .map(
             (project, index) => `
@@ -1986,6 +2026,37 @@
             `
           )
           .join("");
+
+        projectsEditorRoot.innerHTML += `
+          <section class="editor-year">
+            <div class="editor-year-head">
+              <div>
+                <h3 class="editor-year-title">Add From Library</h3>
+                <div class="editor-year-badge">${availableLibrary.length} available</div>
+              </div>
+            </div>
+            ${
+              availableLibrary.length
+                ? availableLibrary
+                    .map(
+                      (project) => `
+                        <div class="editor-entry">
+                          <div>
+                            <strong>${escapeHtml(project.title)}</strong>
+                            <p class="publication-authors">${escapeHtml(project.venue)}</p>
+                            <p class="publication-meta">${escapeHtml(project.summary)}</p>
+                          </div>
+                          <div class="modal-actions">
+                            <button class="action-btn" type="button" data-add-library-project="${escapeHtml(project.id)}">Add to Site</button>
+                          </div>
+                        </div>
+                      `
+                    )
+                    .join("")
+                : '<p class="publication-authors">All library projects are already in this site.</p>'
+            }
+          </section>
+        `;
       }
 
       async function savePublications() {
@@ -1995,6 +2066,7 @@
             body: JSON.stringify({ publications }),
           });
           publications = payload.publications;
+          publicationLibrary = payload.library || [];
           renderPublications();
           renderEditor();
           editorStatus.textContent = "Saved.";
@@ -2025,6 +2097,7 @@
             body: JSON.stringify({ projects }),
           });
           projects = payload.projects;
+          projectLibrary = payload.library || [];
           renderProjects();
           renderProjectsEditor();
           projectsEditorStatus.textContent = "Saved.";
@@ -2046,6 +2119,7 @@
       async function loadPublications() {
         const payload = await requestJson(`${API_BASE}/publications`);
         publications = payload.publications;
+        publicationLibrary = payload.library || [];
         renderPublications();
       }
 
@@ -2058,6 +2132,7 @@
       async function loadProjects() {
         const payload = await requestJson(`${API_BASE}/projects`);
         projects = payload.projects;
+        projectLibrary = payload.library || [];
         renderProjects();
       }
 
@@ -2253,6 +2328,31 @@
         if (button.dataset.removeYear !== undefined) {
           const groupIndex = Number(button.dataset.removeYear);
           publications.splice(groupIndex, 1);
+          renderEditor();
+          return;
+        }
+
+        if (button.dataset.addLibraryPublication) {
+          const libraryItem = publicationLibrary.find((item) => item.id === button.dataset.addLibraryPublication);
+          if (!libraryItem) {
+            return;
+          }
+
+          const targetGroup = publications.find((group) => group.year === libraryItem.year);
+          const nextItem = {
+            id: libraryItem.id,
+            title: libraryItem.title,
+            authors: libraryItem.authors,
+            venue: libraryItem.venue,
+            award: libraryItem.award || "",
+          };
+
+          if (targetGroup) {
+            targetGroup.items.push(nextItem);
+          } else {
+            publications.push({ year: libraryItem.year, items: [nextItem] });
+          }
+
           renderEditor();
         }
       });
@@ -2456,6 +2556,25 @@
           } else {
             project.galleryImages.splice(Number(imageIndexRaw), 1);
           }
+          renderProjectsEditor();
+          return;
+        }
+
+        if (button.dataset.addLibraryProject) {
+          const libraryProject = projectLibrary.find((project) => project.id === button.dataset.addLibraryProject);
+          if (!libraryProject) {
+            return;
+          }
+
+          projects.push({
+            id: libraryProject.id,
+            title: libraryProject.title,
+            venue: libraryProject.venue,
+            summary: libraryProject.summary,
+            description: libraryProject.description,
+            heroImage: libraryProject.heroImage,
+            galleryImages: [...libraryProject.galleryImages],
+          });
           renderProjectsEditor();
         }
       });

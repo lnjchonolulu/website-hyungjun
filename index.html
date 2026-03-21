@@ -1459,7 +1459,7 @@
         }
 
         suppressHashRoute = true;
-        window.location.hash = nextHash;
+        window.history.pushState(null, "", nextHash);
         requestAnimationFrame(() => {
           suppressHashRoute = false;
         });
@@ -2146,6 +2146,14 @@
       });
 
       window.addEventListener("hashchange", () => {
+        if (suppressHashRoute) {
+          return;
+        }
+
+        routeFromHash();
+      });
+
+      window.addEventListener("popstate", () => {
         if (suppressHashRoute) {
           return;
         }

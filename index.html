@@ -66,6 +66,22 @@
         grid-column: 1 / span 6;
       }
 
+      .brand-btn {
+        border: 0;
+        background: transparent;
+        padding: 0;
+        margin: 0;
+        font: inherit;
+        color: var(--muted);
+        cursor: pointer;
+        transition: color 0.18s ease;
+      }
+
+      .brand-btn:hover,
+      .brand-btn.active {
+        color: var(--text);
+      }
+
       .nav {
         display: grid;
         grid-template-columns: repeat(4, max-content);
@@ -581,6 +597,125 @@
         padding-top: calc(var(--topbar-height) + 34px);
       }
 
+      .about-panel {
+        margin-top: calc(-1 * var(--topbar-height));
+        padding-top: calc(var(--topbar-height) + 34px);
+        height: calc(100vh - var(--page-pad-top) - 20px);
+        overflow: hidden;
+      }
+
+      .about-grid {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 18px;
+        height: 100%;
+        min-height: 0;
+        grid-template-rows: minmax(0, 0.82fr) minmax(0, 1.18fr);
+      }
+
+      .about-top-left {
+        grid-column: 1 / span 6;
+        grid-row: 1;
+        min-height: 0;
+      }
+
+      .about-top-right {
+        grid-column: 7 / -1;
+        grid-row: 1;
+        min-height: 0;
+      }
+
+      .about-bottom-left {
+        grid-column: 1 / span 6;
+        grid-row: 2;
+        min-height: 0;
+      }
+
+      .about-bottom-right {
+        grid-column: 7 / -1;
+        grid-row: 2;
+        min-height: 0;
+      }
+
+      .info-section {
+        min-height: 0;
+      }
+
+      .info-section-head {
+        margin: 0;
+        padding: 0 0 12px;
+        border-top: 1px solid var(--line);
+        padding-top: 14px;
+        font-size: 0.96rem;
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .info-list {
+        min-height: 0;
+      }
+
+      .info-list.scroll-soft {
+        height: calc(100% - 46px);
+        overflow-y: auto;
+        padding-right: 6px;
+        scrollbar-gutter: stable;
+      }
+
+      .info-entry {
+        padding: 12px 0;
+        border-top: 1px solid rgba(17, 17, 17, 0.12);
+      }
+
+      .info-entry:first-child {
+        border-top: 0;
+        padding-top: 0;
+      }
+
+      .info-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.25;
+      }
+
+      .info-meta {
+        margin: 6px 0 0;
+        font-size: 0.92rem;
+        line-height: 1.35;
+        color: var(--muted);
+      }
+
+      .education-degree {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.28;
+      }
+
+      .education-detail {
+        margin: 6px 0 0;
+        font-size: 0.92rem;
+        line-height: 1.35;
+        color: var(--muted);
+      }
+
+      .research-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .research-chip {
+        width: fit-content;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: rgba(245, 242, 236, 0.62);
+        font-size: 0.92rem;
+        color: var(--text);
+        font-weight: 400;
+      }
+
       .contact-copy {
         margin: 0;
         font-size: clamp(1.2rem, 2vw, 1.55rem);
@@ -678,6 +813,30 @@
           gap: 10px;
         }
 
+        .about-grid {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto;
+        }
+
+        .about-top-left,
+        .about-top-right,
+        .about-bottom-left,
+        .about-bottom-right {
+          grid-column: 1;
+          grid-row: auto;
+        }
+
+        .about-panel {
+          height: auto;
+          overflow: visible;
+        }
+
+        .info-list.scroll-soft {
+          height: auto;
+          overflow: visible;
+          padding-right: 0;
+        }
+
         .publication-year,
         .publication-list {
           grid-column: 1;
@@ -720,7 +879,8 @@
         }
 
         .publication-panel,
-        .stack-panel {
+        .stack-panel,
+        .about-panel {
           height: auto;
           overflow: visible;
           margin-top: 0;
@@ -756,16 +916,18 @@
   <body>
     <main class="page">
       <header class="topbar">
-        <h1 class="brand">Hyungjun Cho</h1>
+        <h1 class="brand">
+          <button class="brand-btn active" data-tab="home" type="button">Hyungjun Cho</button>
+        </h1>
         <nav class="nav" aria-label="Sections">
-          <button class="nav-btn active" data-tab="about">About</button>
+          <button class="nav-btn" data-tab="about">About</button>
           <button class="nav-btn" data-tab="publications">Publications</button>
           <button class="nav-btn" data-tab="projects">Project</button>
           <button class="nav-btn" data-tab="contact">Contact</button>
         </nav>
       </header>
 
-      <section id="about" class="panel hero-panel active">
+      <section id="home" class="panel hero-panel active">
         <div class="hero-stage">
           <img
             class="portrait"
@@ -827,6 +989,10 @@
             publications and selected projects.
           </p>
         </div>
+      </section>
+
+      <section id="about" class="panel about-panel">
+        <div id="about-render"></div>
       </section>
 
       <section id="publications" class="panel publication-panel scroll-soft">
@@ -908,41 +1074,61 @@
       </div>
     </div>
 
+    <div class="modal" id="about-editor-modal" aria-hidden="true">
+      <div class="modal-card">
+        <h2>Edit About</h2>
+        <p class="modal-copy">Update Education, Research Interests, News, and Travel content.</p>
+        <div id="about-editor-root"></div>
+        <div class="modal-actions">
+          <button class="action-btn primary" type="button" id="save-about">Save Changes</button>
+          <button class="action-btn ghost" type="button" id="close-about-editor">Close</button>
+        </div>
+        <p class="editor-status" id="about-editor-status"></p>
+      </div>
+    </div>
+
     <script>
-      const buttons = document.querySelectorAll(".nav-btn");
+      const buttons = document.querySelectorAll(".nav-btn, .brand-btn");
       const panels = document.querySelectorAll(".panel");
       const API_BASE = "/api";
       let publications = [];
+      let aboutContent = null;
+      let activeTab = "home";
+      let draggedItem = null;
 
       const publicationsRender = document.querySelector("#publications-render");
+      const aboutRender = document.querySelector("#about-render");
       const editTrigger = document.querySelector("#edit-trigger");
       const passwordModal = document.querySelector("#password-modal");
       const editorModal = document.querySelector("#editor-modal");
+      const aboutEditorModal = document.querySelector("#about-editor-modal");
       const passwordInput = document.querySelector("#password-input");
       const passwordSubmit = document.querySelector("#password-submit");
       const passwordCancel = document.querySelector("#password-cancel");
       const passwordStatus = document.querySelector("#password-status");
       const editorRoot = document.querySelector("#editor-root");
       const editorStatus = document.querySelector("#editor-status");
+      const aboutEditorRoot = document.querySelector("#about-editor-root");
+      const aboutEditorStatus = document.querySelector("#about-editor-status");
       const addYearButton = document.querySelector("#add-year");
       const savePublicationsButton = document.querySelector("#save-publications");
       const closeEditorButton = document.querySelector("#close-editor");
-      let draggedItem = null;
+      const saveAboutButton = document.querySelector("#save-about");
+      const closeAboutEditorButton = document.querySelector("#close-about-editor");
 
-      updateEditTrigger("about");
+      updateEditTrigger(activeTab);
 
       buttons.forEach((button) => {
         button.addEventListener("click", () => {
-          const target = button.dataset.tab;
-
+          activeTab = button.dataset.tab;
           buttons.forEach((item) => item.classList.toggle("active", item === button));
-          panels.forEach((panel) => panel.classList.toggle("active", panel.id === target));
-          updateEditTrigger(target);
+          panels.forEach((panel) => panel.classList.toggle("active", panel.id === activeTab));
+          updateEditTrigger(activeTab);
         });
       });
 
-      function updateEditTrigger(activeTab) {
-        editTrigger.classList.toggle("visible", activeTab === "publications");
+      function updateEditTrigger(tab) {
+        editTrigger.classList.toggle("visible", tab === "publications" || tab === "about");
       }
 
       function escapeHtml(value) {
@@ -956,10 +1142,7 @@
 
       function formatAuthors(value) {
         const escaped = escapeHtml(value);
-        return escaped.replaceAll(
-          "Hyungjun Cho",
-          '<span class="author-self">Hyungjun Cho</span>'
-        );
+        return escaped.replaceAll("Hyungjun Cho", '<span class="author-self">Hyungjun Cho</span>');
       }
 
       function sortPublicationYears() {
@@ -1011,6 +1194,66 @@
           .join("");
       }
 
+      function renderAbout() {
+        if (!aboutContent) {
+          return;
+        }
+
+        const educationHtml = aboutContent.education
+          .map((entry) => {
+            const details = entry.details
+              .map((detail) => `<p class="education-detail">${escapeHtml(detail)}</p>`)
+              .join("");
+
+            return `
+              <article class="info-entry">
+                <p class="education-degree">${escapeHtml(entry.degree)}</p>
+                ${details}
+              </article>
+            `;
+          })
+          .join("");
+
+        const interestsHtml = aboutContent.researchInterests
+          .map((item) => `<div class="research-chip">${escapeHtml(item)}</div>`)
+          .join("");
+
+        const listHtml = (items) =>
+          items
+            .map(
+              (entry) => `
+                <article class="info-entry">
+                  <p class="info-title">${escapeHtml(entry.title)}</p>
+                  <p class="info-meta">${escapeHtml(entry.meta)}</p>
+                </article>
+              `
+            )
+            .join("");
+
+        aboutRender.innerHTML = `
+          <div class="about-grid">
+            <section class="info-section about-top-left">
+              <h2 class="info-section-head">Education</h2>
+              <div class="info-list">${educationHtml}</div>
+            </section>
+            <section class="info-section about-top-right">
+              <h2 class="info-section-head">Research Interests</h2>
+              <div class="info-list">
+                <div class="research-list">${interestsHtml}</div>
+              </div>
+            </section>
+            <section class="info-section about-bottom-left">
+              <h2 class="info-section-head">News</h2>
+              <div class="info-list scroll-soft">${listHtml(aboutContent.news)}</div>
+            </section>
+            <section class="info-section about-bottom-right">
+              <h2 class="info-section-head">Travel</h2>
+              <div class="info-list scroll-soft">${listHtml(aboutContent.travel)}</div>
+            </section>
+          </div>
+        `;
+      }
+
       function renderEditor() {
         sortPublicationYears();
         editorRoot.innerHTML = publications
@@ -1055,6 +1298,96 @@
           .join("");
       }
 
+      function renderAboutEditor() {
+        if (!aboutContent) {
+          return;
+        }
+
+        const educationHtml = aboutContent.education
+          .map((entry, index) => {
+            const details = entry.details.join("\n");
+            return `
+              <section class="editor-year">
+                <div class="editor-year-head">
+                  <div>
+                    <h3 class="editor-year-title">Education ${index + 1}</h3>
+                    <div class="editor-year-badge">Education</div>
+                  </div>
+                  <button class="action-btn ghost editor-danger" type="button" data-remove-about-education="${index}">Delete</button>
+                </div>
+                <div class="editor-grid">
+                  <input class="text-input full" data-about-field="education-degree" data-index="${index}" value="${escapeHtml(entry.degree)}" placeholder="Degree line" />
+                  <textarea class="text-area full" data-about-field="education-details" data-index="${index}" placeholder="One detail per line">${escapeHtml(details)}</textarea>
+                </div>
+              </section>
+            `;
+          })
+          .join("");
+
+        const interestsHtml = aboutContent.researchInterests
+          .map(
+            (entry, index) => `
+              <div class="editor-entry">
+                <div class="editor-grid">
+                  <input class="text-input full" data-about-field="interest" data-index="${index}" value="${escapeHtml(entry)}" placeholder="Research Interest" />
+                </div>
+                <div class="modal-actions">
+                  <button class="action-btn ghost editor-danger" type="button" data-remove-about-interest="${index}">Delete</button>
+                </div>
+              </div>
+            `
+          )
+          .join("");
+
+        const simpleListEditor = (title, key, items, metaLabel) => `
+          <section class="editor-year">
+            <div class="editor-year-head">
+              <div>
+                <h3 class="editor-year-title">${title}</h3>
+                <div class="editor-year-badge">${title}</div>
+              </div>
+            </div>
+            ${items
+              .map(
+                (entry, index) => `
+                  <div class="editor-entry">
+                    <div class="editor-grid">
+                      <input class="text-input full" data-about-field="${key}-title" data-index="${index}" value="${escapeHtml(entry.title)}" placeholder="Title" />
+                      <input class="text-input full" data-about-field="${key}-meta" data-index="${index}" value="${escapeHtml(entry.meta)}" placeholder="${metaLabel}" />
+                    </div>
+                    <div class="modal-actions">
+                      <button class="action-btn ghost editor-danger" type="button" data-remove-about-item="${key}:${index}">Delete</button>
+                    </div>
+                  </div>
+                `
+              )
+              .join("")}
+            <div class="modal-actions">
+              <button class="action-btn" type="button" data-add-about-item="${key}">Add Item</button>
+            </div>
+          </section>
+        `;
+
+        aboutEditorRoot.innerHTML = `
+          ${educationHtml}
+          <section class="editor-year">
+            <div class="editor-year-head">
+              <div>
+                <h3 class="editor-year-title">Research Interests</h3>
+                <div class="editor-year-badge">Interests</div>
+              </div>
+            </div>
+            ${interestsHtml}
+            <div class="modal-actions">
+              <button class="action-btn" type="button" data-add-about-interest>Add Interest</button>
+              <button class="action-btn" type="button" data-add-about-education>Add Education</button>
+            </div>
+          </section>
+          ${simpleListEditor("News", "news", aboutContent.news, "Date")}
+          ${simpleListEditor("Travel", "travel", aboutContent.travel, "Date / Place")}
+        `;
+      }
+
       async function savePublications() {
         try {
           const payload = await requestJson(`${API_BASE}/publications`, {
@@ -1067,6 +1400,21 @@
           editorStatus.textContent = "Saved.";
         } catch (error) {
           editorStatus.textContent = error.message;
+        }
+      }
+
+      async function saveAbout() {
+        try {
+          const payload = await requestJson(`${API_BASE}/about`, {
+            method: "PUT",
+            body: JSON.stringify({ about: aboutContent }),
+          });
+          aboutContent = payload.about;
+          renderAbout();
+          renderAboutEditor();
+          aboutEditorStatus.textContent = "Saved.";
+        } catch (error) {
+          aboutEditorStatus.textContent = error.message;
         }
       }
 
@@ -1086,9 +1434,28 @@
         renderPublications();
       }
 
+      async function loadAbout() {
+        const payload = await requestJson(`${API_BASE}/about`);
+        aboutContent = payload.about;
+        renderAbout();
+      }
+
       async function ensureSession() {
         const payload = await requestJson(`${API_BASE}/session`);
         return payload.authenticated;
+      }
+
+      function openEditorForActiveTab() {
+        if (activeTab === "about") {
+          renderAboutEditor();
+          aboutEditorStatus.textContent = "";
+          openModal(aboutEditorModal);
+          return;
+        }
+
+        renderEditor();
+        editorStatus.textContent = "";
+        openModal(editorModal);
       }
 
       editTrigger.addEventListener("click", async () => {
@@ -1096,12 +1463,10 @@
         try {
           const authenticated = await ensureSession();
           if (authenticated) {
-            renderEditor();
-            editorStatus.textContent = "";
-            openModal(editorModal);
+            openEditorForActiveTab();
             return;
           }
-        } catch (error) {
+        } catch (_error) {
           passwordStatus.textContent = "Could not reach the server.";
         }
 
@@ -1126,12 +1491,11 @@
         }
 
         closeModal(passwordModal);
-        renderEditor();
-        editorStatus.textContent = "";
-        openModal(editorModal);
+        openEditorForActiveTab();
       });
 
       closeEditorButton.addEventListener("click", () => closeModal(editorModal));
+      closeAboutEditorButton.addEventListener("click", () => closeModal(aboutEditorModal));
 
       addYearButton.addEventListener("click", () => {
         publications.unshift({
@@ -1141,9 +1505,8 @@
         renderEditor();
       });
 
-      savePublicationsButton.addEventListener("click", () => {
-        void savePublications();
-      });
+      savePublicationsButton.addEventListener("click", () => void savePublications());
+      saveAboutButton.addEventListener("click", () => void saveAbout());
 
       editorRoot.addEventListener("input", (event) => {
         const target = event.target;
@@ -1249,8 +1612,97 @@
         renderEditor();
       });
 
-      loadPublications().catch((error) => {
-        publicationsRender.innerHTML = `<p class="publication-authors">${escapeHtml(error.message)}</p>`;
+      aboutEditorRoot.addEventListener("input", (event) => {
+        const target = event.target;
+        const field = target.dataset.aboutField;
+        const index = Number(target.dataset.index);
+
+        if (field === "education-degree") {
+          aboutContent.education[index].degree = target.value;
+          return;
+        }
+
+        if (field === "education-details") {
+          aboutContent.education[index].details = target.value
+            .split("\n")
+            .map((value) => value.trim())
+            .filter(Boolean);
+          return;
+        }
+
+        if (field === "interest") {
+          aboutContent.researchInterests[index] = target.value;
+          return;
+        }
+
+        if (field === "news-title") {
+          aboutContent.news[index].title = target.value;
+          return;
+        }
+
+        if (field === "news-meta") {
+          aboutContent.news[index].meta = target.value;
+          return;
+        }
+
+        if (field === "travel-title") {
+          aboutContent.travel[index].title = target.value;
+          return;
+        }
+
+        if (field === "travel-meta") {
+          aboutContent.travel[index].meta = target.value;
+        }
+      });
+
+      aboutEditorRoot.addEventListener("click", (event) => {
+        const button = event.target.closest("button");
+        if (!button) {
+          return;
+        }
+
+        if (button.dataset.addAboutEducation !== undefined) {
+          aboutContent.education.push({ degree: "", details: [] });
+          renderAboutEditor();
+          return;
+        }
+
+        if (button.dataset.removeAboutEducation !== undefined) {
+          aboutContent.education.splice(Number(button.dataset.removeAboutEducation), 1);
+          renderAboutEditor();
+          return;
+        }
+
+        if (button.dataset.addAboutInterest !== undefined) {
+          aboutContent.researchInterests.push("");
+          renderAboutEditor();
+          return;
+        }
+
+        if (button.dataset.removeAboutInterest !== undefined) {
+          aboutContent.researchInterests.splice(Number(button.dataset.removeAboutInterest), 1);
+          renderAboutEditor();
+          return;
+        }
+
+        if (button.dataset.addAboutItem !== undefined) {
+          const key = button.dataset.addAboutItem;
+          aboutContent[key].push({ title: "", meta: "" });
+          renderAboutEditor();
+          return;
+        }
+
+        if (button.dataset.removeAboutItem !== undefined) {
+          const [key, index] = button.dataset.removeAboutItem.split(":");
+          aboutContent[key].splice(Number(index), 1);
+          renderAboutEditor();
+        }
+      });
+
+      Promise.all([loadPublications(), loadAbout()]).catch((error) => {
+        const message = `<p class="publication-authors">${escapeHtml(error.message)}</p>`;
+        publicationsRender.innerHTML = message;
+        aboutRender.innerHTML = message;
       });
     </script>
   </body>

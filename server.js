@@ -62,6 +62,58 @@ const defaultPublications = [
   },
 ];
 
+const defaultAbout = {
+  education: [
+    {
+      degree:
+        "Ph.D in Industrial Design, Korea Advanced Institute of Science and Technology (KAIST), Feb 2025",
+      details: [
+        "Dissertation: Design Speculations for Reimagining Human-Thing Relationships",
+        "Committee: Tek-Jin Nam (Chair), Hwajung Hong, Changhee Lee, Heekyung Jung, Daisy Yoo",
+      ],
+    },
+    {
+      degree:
+        "M.S in Industrial Design, Korea Advanced Institute of Science and Technology (KAIST), 2020",
+      details: [],
+    },
+    {
+      degree:
+        "B.S in Industrial Design, Korea Advanced Institute of Science and Technology (KAIST), 2018",
+      details: [],
+    },
+  ],
+  researchInterests: ["Human-AI Interaction"],
+  news: [
+    { title: "Two papers accepted to DIS 2026", meta: "March 18, 2026" },
+    { title: "Received Best Paper Honorable Mention Award 🏅at CHI 2026", meta: "March 8, 2026" },
+    { title: "Two papers accepted to CHI 2026", meta: "Jan 15, 2026" },
+    {
+      title: "Organizing Restoring Human Authenticity in AI-MC Workshop at CHI 2026",
+      meta: "Nov 21, 2025",
+    },
+    { title: "Joined the University of Florida as an Assistant Professor", meta: "Aug 16, 2025" },
+    { title: "One paper accepted to RO-MAN 2025", meta: "June 9, 2025" },
+    {
+      title: "Joined as a visiting scholar at Kyoto University, Japan, working with Dr. Naomi Yamashita",
+      meta: "May 26, 2025",
+    },
+    { title: "Organizing Design Knowledge in AI Workshops at DIS 2025", meta: "May 1, 2025" },
+    { title: "Received Best Paper Honorable Mention Award 🏅at CHI 2025", meta: "April 26, 2025" },
+  ],
+  travel: [
+    { title: "Attending DIS 2026 conference, Singapore", meta: "June 13-17, 2026" },
+    { title: "Attending CHI 2026 conference, Barcelona, Spain", meta: "April 13-17, 2026" },
+    { title: "Attending DIS 2025 conference, Funchal, Madeira", meta: "July 5-9, 2025" },
+    { title: "Attending CHI 2025 conference, Yokohama, Japan", meta: "April 26 - May 1, 2024" },
+    { title: "Attending DIS 2024 conference, Copenhagen, Denmark", meta: "July 1-5, 2024" },
+    { title: "Attending CHI 2024 conference, Honolulu, US", meta: "May 11-16, 2024" },
+    { title: "Attending Scalable HCI Symposium, Shenzhen, China", meta: "Jan 7-11, 2024" },
+    { title: "Attending DIS 2023 conference, Pittsburgh, US", meta: "July 9-14, 2023" },
+    { title: "Attending CHI 2023 conference, Hamburg, US", meta: "April 23-28, 2023" },
+  ],
+};
+
 if (!DATABASE_URL) {
   throw new Error("DATABASE_URL is required.");
 }
@@ -210,6 +262,40 @@ function validatePublications(payload) {
   });
 }
 
+function validateAbout(payload) {
+  if (!payload || typeof payload !== "object") {
+    return false;
+  }
+
+  if (
+    !Array.isArray(payload.education) ||
+    !Array.isArray(payload.researchInterests) ||
+    !Array.isArray(payload.news) ||
+    !Array.isArray(payload.travel)
+  ) {
+    return false;
+  }
+
+  const validEducation = payload.education.every((entry) => {
+    return (
+      entry &&
+      typeof entry.degree === "string" &&
+      Array.isArray(entry.details) &&
+      entry.details.every((detail) => typeof detail === "string")
+    );
+  });
+
+  const validSimpleList = (entries) =>
+    entries.every((entry) => entry && typeof entry.title === "string" && typeof entry.meta === "string");
+
+  return (
+    validEducation &&
+    payload.researchInterests.every((entry) => typeof entry === "string") &&
+    validSimpleList(payload.news) &&
+    validSimpleList(payload.travel)
+  );
+}
+
 function groupRows(rows) {
   const grouped = [];
   let current = null;
@@ -284,6 +370,27 @@ async function loadPublications() {
   return groupRows(rows);
 }
 
+async function loadAbout() {
+  const { rows } = await pool.query("SELECT value FROM site_content WHERE key = 'about'");
+  if (rows.length === 0) {
+    return defaultAbout;
+  }
+
+  return rows[0].value;
+}
+
+async function saveAbout(about) {
+  await pool.query(
+    `
+      INSERT INTO site_content (key, value, updated_at)
+      VALUES ('about', $1::jsonb, NOW())
+      ON CONFLICT (key)
+      DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
+    `,
+    [JSON.stringify(about)]
+  );
+}
+
 async function ensureSchema() {
   const schemaPath = path.join(process.cwd(), "db", "schema.sql");
   const schemaSql = fs.readFileSync(schemaPath, "utf8");
@@ -292,6 +399,11 @@ async function ensureSchema() {
   const { rows } = await pool.query("SELECT COUNT(*)::int AS count FROM publications");
   if (rows[0].count === 0) {
     await replacePublications(defaultPublications);
+  }
+
+  const aboutRows = await pool.query("SELECT COUNT(*)::int AS count FROM site_content WHERE key = 'about'");
+  if (aboutRows.rows[0].count === 0) {
+    await saveAbout(defaultAbout);
   }
 }
 
@@ -352,6 +464,16 @@ app.get("/api/publications", async (_req, res) => {
   }
 });
 
+app.get("/api/about", async (_req, res) => {
+  try {
+    const about = await loadAbout();
+    res.json({ about });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to load about content." });
+  }
+});
+
 app.put("/api/publications", authMiddleware, async (req, res) => {
   const nextPublications = req.body?.publications;
 
@@ -367,6 +489,23 @@ app.put("/api/publications", authMiddleware, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to save publications." });
+  }
+});
+
+app.put("/api/about", authMiddleware, async (req, res) => {
+  const about = req.body?.about;
+
+  if (!validateAbout(about)) {
+    res.status(400).json({ error: "Invalid about payload." });
+    return;
+  }
+
+  try {
+    await saveAbout(about);
+    res.json({ about: await loadAbout() });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to save about content." });
   }
 });
 

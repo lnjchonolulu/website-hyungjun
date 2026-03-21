@@ -22,7 +22,6 @@
         --portrait-max: 250px;
         --publication-right-pad: 26px;
         --project-copy-width: min(10vw, 136px);
-        --project-right-trim: 72px;
       }
 
       * {
@@ -223,10 +222,8 @@
       }
 
       .project-panel {
-        margin-top: calc(-1 * var(--topbar-height));
         padding-top: 34px;
-        padding-top: calc(var(--topbar-height) + 34px);
-        height: calc(100vh - var(--page-pad-top) - 20px);
+        height: calc(100vh - var(--page-pad-top) - var(--topbar-height) - 20px);
         overflow-y: auto;
         padding-right: 6px;
         scrollbar-gutter: stable;
@@ -595,12 +592,15 @@
         text-align: right;
         align-self: end;
         justify-self: end;
+        padding-bottom: 18px;
+        border-bottom: 1px solid rgba(17, 17, 17, 0.16);
       }
 
       .project-media {
-        grid-column: 7 / -1;
+        grid-column: 7 / span 4;
         align-self: end;
-        width: calc(100% - var(--project-right-trim));
+        width: 100%;
+        justify-self: start;
       }
 
       .project-link {

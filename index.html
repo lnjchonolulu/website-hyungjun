@@ -222,8 +222,10 @@
       }
 
       .project-panel {
+        margin-top: calc(-1 * var(--topbar-height));
         padding-top: 34px;
-        height: calc(100vh - var(--page-pad-top) - var(--topbar-height) - 20px);
+        padding-top: calc(var(--topbar-height) + 34px);
+        height: calc(100vh - var(--page-pad-top) - 20px);
         overflow-y: auto;
         padding-right: 6px;
         scrollbar-gutter: stable;
@@ -570,6 +572,7 @@
         display: flex;
         flex-direction: column;
         gap: 26px;
+        padding-top: 8px;
       }
 
       .contact-title {
@@ -597,7 +600,7 @@
       }
 
       .project-media {
-        grid-column: 7 / span 4;
+        grid-column: 7 / span 3;
         align-self: end;
         width: 100%;
         justify-self: start;

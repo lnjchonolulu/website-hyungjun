@@ -154,10 +154,16 @@
 
       .stack-panel {
         padding-top: 34px;
+        height: calc(100vh - var(--page-pad-top) - var(--topbar-height) - 20px);
+        overflow-y: auto;
+        padding-right: 6px;
       }
 
       .publication-panel {
         padding-top: 34px;
+        height: calc(100vh - var(--page-pad-top) - var(--topbar-height) - 20px);
+        overflow-y: auto;
+        padding-right: 6px;
       }
 
       .publication-group {
@@ -260,10 +266,15 @@
         letter-spacing: 0.08em;
         color: rgba(90, 90, 88, 0.75);
         cursor: pointer;
+        display: none;
       }
 
       .edit-trigger:hover {
         color: var(--text);
+      }
+
+      .edit-trigger.visible {
+        display: inline-block;
       }
 
       .modal {
@@ -609,6 +620,13 @@
           padding: 10px;
         }
 
+        .publication-panel,
+        .stack-panel {
+          height: auto;
+          overflow: visible;
+          padding-right: 0;
+        }
+
         .hero-panel {
           min-height: calc(100vh - 108px);
         }
@@ -713,7 +731,7 @@
         </p>
       </section>
 
-      <button class="edit-trigger" type="button" id="edit-trigger">EDIT</button>
+      <button class="edit-trigger" type="button" id="edit-trigger">edit.</button>
     </main>
 
     <div class="modal" id="password-modal" aria-hidden="true">
@@ -764,14 +782,21 @@
       const savePublicationsButton = document.querySelector("#save-publications");
       const closeEditorButton = document.querySelector("#close-editor");
 
+      updateEditTrigger("about");
+
       buttons.forEach((button) => {
         button.addEventListener("click", () => {
           const target = button.dataset.tab;
 
           buttons.forEach((item) => item.classList.toggle("active", item === button));
           panels.forEach((panel) => panel.classList.toggle("active", panel.id === target));
+          updateEditTrigger(target);
         });
       });
+
+      function updateEditTrigger(activeTab) {
+        editTrigger.classList.toggle("visible", activeTab === "publications");
+      }
 
       function escapeHtml(value) {
         return String(value)
@@ -818,7 +843,7 @@
                   <div class="publication-item">
                     <h3 class="publication-title">${escapeHtml(item.title)}</h3>
                     <p class="publication-authors">${formatAuthors(item.authors)}</p>
-                    <span class="publication-venue">(${escapeHtml(item.venue)})${awardText}</span>
+                    <span class="publication-venue">${escapeHtml(item.venue)}${awardText}</span>
                   </div>
                 `;
               })

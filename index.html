@@ -43,9 +43,8 @@
       }
 
       .page {
-        position: relative;
         height: 100vh;
-        padding: 0 20px 20px 28px;
+        padding: var(--page-pad-top) 20px 20px 28px;
       }
 
       .topbar {
@@ -54,11 +53,6 @@
         gap: 18px;
         align-items: start;
         min-height: var(--topbar-height);
-        position: absolute;
-        top: var(--page-pad-top);
-        left: 28px;
-        right: 20px;
-        z-index: 20;
       }
 
       .brand {
@@ -163,14 +157,14 @@
 
       .stack-panel {
         padding-top: calc(var(--page-pad-top) + var(--topbar-height) + 12px);
-        height: 100%;
+        height: calc(100vh - var(--page-pad-top) - 20px);
         overflow-y: auto;
         padding-right: 6px;
       }
 
       .publication-panel {
         padding-top: calc(var(--page-pad-top) + var(--topbar-height) + 12px);
-        height: 100%;
+        height: calc(100vh - var(--page-pad-top) - 20px);
         overflow-y: auto;
         padding-right: 6px;
       }
@@ -580,7 +574,6 @@
         .topbar {
           grid-template-columns: 1fr;
           min-height: auto;
-          position: static;
         }
 
         .nav {

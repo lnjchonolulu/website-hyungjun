@@ -714,7 +714,7 @@
 
       .project-detail-panel {
         margin-top: calc(-1 * var(--topbar-height));
-        padding-top: calc(var(--topbar-height) + 8px);
+        padding-top: calc(var(--topbar-height) - 20px);
         height: calc(100vh - var(--page-pad-top) - 20px);
         overflow: hidden;
       }
@@ -723,7 +723,7 @@
         display: grid;
         grid-template-columns: repeat(12, minmax(0, 1fr));
         column-gap: 18px;
-        row-gap: 8px;
+        row-gap: 1px;
         height: 100%;
         min-height: 0;
         grid-template-rows: auto auto minmax(0, 1fr);
@@ -767,9 +767,10 @@
         display: flex;
         gap: 18px;
         align-items: end;
+        align-self: end;
         overflow-x: auto;
         overflow-y: hidden;
-        padding-bottom: 6px;
+        padding-bottom: 18px;
         scrollbar-gutter: stable;
       }
 

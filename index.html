@@ -44,7 +44,7 @@
 
       .page {
         height: 100vh;
-        padding: var(--page-pad-top) 20px 20px 28px;
+        padding: var(--page-pad-top) 28px 20px;
       }
 
       .topbar {
@@ -66,7 +66,7 @@
 
       .nav {
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between;
         gap: clamp(18px, 2vw, 28px);
         padding-top: 2px;
         grid-column: 7 / -1;
@@ -74,16 +74,13 @@
 
       .nav-btn {
         border: 0;
-        background: rgba(245, 242, 236, 0.62);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        padding: 9px 16px;
+        background: transparent;
+        padding: 0;
         font: inherit;
         font-size: 0.98rem;
         color: var(--muted);
         cursor: pointer;
         transition: color 0.18s ease;
-        border-radius: 999px;
       }
 
       .nav-btn:hover,
@@ -156,15 +153,15 @@
       }
 
       .stack-panel {
-        padding-top: calc(var(--page-pad-top) + var(--topbar-height) + 12px);
-        height: calc(100vh - var(--page-pad-top) - 20px);
+        padding-top: 34px;
+        height: calc(100vh - var(--page-pad-top) - var(--topbar-height) - 20px);
         overflow-y: auto;
         padding-right: 6px;
       }
 
       .publication-panel {
-        padding-top: calc(var(--page-pad-top) + var(--topbar-height) + 12px);
-        height: calc(100vh - var(--page-pad-top) - 20px);
+        padding-top: 34px;
+        height: calc(100vh - var(--page-pad-top) - var(--topbar-height) - 20px);
         overflow-y: auto;
         padding-right: 6px;
       }
@@ -522,7 +519,7 @@
       }
 
       .contact-panel {
-        padding-top: calc(var(--page-pad-top) + var(--topbar-height) + 12px);
+        padding-top: 34px;
       }
 
       .contact-copy {

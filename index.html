@@ -726,11 +726,18 @@
         row-gap: 1px;
         height: 100%;
         min-height: 0;
-        grid-template-rows: auto auto minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
+      }
+
+      .project-detail-copy {
+        grid-column: 1 / span 6;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        align-self: start;
       }
 
       .project-detail-title {
-        grid-column: 1 / span 6;
         margin: 0;
         font-size: clamp(3rem, 7vw, 5rem);
         line-height: 0.9;
@@ -739,7 +746,6 @@
       }
 
       .project-detail-description {
-        grid-column: 1 / span 4;
         margin: 0;
         max-width: 30ch;
         font-size: 1rem;
@@ -749,7 +755,7 @@
 
       .project-detail-main {
         grid-column: 7 / -1;
-        grid-row: 1 / span 2;
+        grid-row: 1;
         align-self: start;
       }
 
@@ -763,7 +769,7 @@
 
       .project-detail-strip {
         grid-column: 1 / -1;
-        grid-row: 3;
+        grid-row: 2;
         display: flex;
         gap: 18px;
         align-items: end;
@@ -1769,8 +1775,10 @@
 
         projectDetailRender.innerHTML = `
           <div class="project-detail-grid">
-            <h2 class="project-detail-title">${escapeHtml(project.title)}</h2>
-            <p class="project-detail-description">${escapeHtml(project.description || project.summary)}</p>
+            <div class="project-detail-copy">
+              <h2 class="project-detail-title">${escapeHtml(project.title)}</h2>
+              <p class="project-detail-description">${escapeHtml(project.description || project.summary)}</p>
+            </div>
             <div class="project-detail-main">
               <img src="${escapeHtml(projectDetailState.selectedImage)}" alt="${escapeHtml(project.title)}" />
             </div>

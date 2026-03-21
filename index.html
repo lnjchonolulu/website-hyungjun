@@ -610,7 +610,7 @@
         gap: 18px;
         height: 100%;
         min-height: 0;
-        grid-template-rows: minmax(0, 0.82fr) minmax(0, 1.18fr);
+        grid-template-rows: auto minmax(0, 1fr);
       }
 
       .about-top-left {
@@ -641,6 +641,12 @@
         min-height: 0;
       }
 
+      .about-bottom-left,
+      .about-bottom-right {
+        display: flex;
+        flex-direction: column;
+      }
+
       .info-section-head {
         margin: 0;
         padding: 0 0 12px;
@@ -656,7 +662,8 @@
       }
 
       .info-list.scroll-soft {
-        height: calc(100% - 46px);
+        flex: 1 1 auto;
+        min-height: 0;
         overflow-y: auto;
         padding-right: 6px;
         scrollbar-gutter: stable;

@@ -761,6 +761,24 @@ async function ensureSchema() {
     }
   }
 
+  const selectedPublicationIds = await loadSiteContent("publication-ids", []);
+  if (Array.isArray(selectedPublicationIds) && selectedPublicationIds.length > 0) {
+    const publicationMasterRows = await pool.query(
+      "SELECT COUNT(*)::int AS count FROM publications_master WHERE id = ANY($1::text[])",
+      [selectedPublicationIds]
+    );
+    if (publicationMasterRows.rows[0].count < selectedPublicationIds.length) {
+      const legacyPublications = await loadLegacyPublicationsForSite();
+      if (legacyPublications.length > 0) {
+        await savePublicationLibraryItems(legacyPublications);
+        await saveSiteContent(
+          "publication-ids",
+          legacyPublications.map((item) => item.id)
+        );
+      }
+    }
+  }
+
   const aboutRows = await pool.query("SELECT COUNT(*)::int AS count FROM site_content WHERE key = $1", [getScopedContentKey("about")]);
   if (aboutRows.rows[0].count === 0) {
     if (SITE_SLUG === PRIMARY_SITE_SLUG) {
@@ -779,6 +797,20 @@ async function ensureSchema() {
       await saveProjects(legacyProjects);
     } else {
       await saveProjects(defaultProjects);
+    }
+  }
+
+  const selectedProjectIds = await loadSiteContent("project-ids", []);
+  if (Array.isArray(selectedProjectIds) && selectedProjectIds.length > 0) {
+    const projectMasterRows = await pool.query(
+      "SELECT COUNT(*)::int AS count FROM projects_master WHERE id = ANY($1::text[])",
+      [selectedProjectIds]
+    );
+    if (projectMasterRows.rows[0].count < selectedProjectIds.length) {
+      const legacyProjects = await loadLegacyProjectsForSite();
+      if (legacyProjects.length > 0) {
+        await saveProjects(legacyProjects);
+      }
     }
   }
 }

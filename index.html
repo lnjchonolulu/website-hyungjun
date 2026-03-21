@@ -599,7 +599,7 @@
 
       .about-panel {
         margin-top: calc(-1 * var(--topbar-height));
-        padding-top: calc(var(--topbar-height) + 34px);
+        padding-top: calc(var(--topbar-height) + 8px);
         height: calc(100vh - var(--page-pad-top) - 20px);
         overflow: hidden;
       }
@@ -1124,11 +1124,27 @@
           buttons.forEach((item) => item.classList.toggle("active", item === button));
           panels.forEach((panel) => panel.classList.toggle("active", panel.id === activeTab));
           updateEditTrigger(activeTab);
+          resetPanelScroll(activeTab);
         });
       });
 
       function updateEditTrigger(tab) {
         editTrigger.classList.toggle("visible", tab === "publications" || tab === "about");
+      }
+
+      function resetPanelScroll(tab) {
+        const panel = document.getElementById(tab);
+        if (!panel) {
+          return;
+        }
+
+        if ("scrollTop" in panel) {
+          panel.scrollTop = 0;
+        }
+
+        panel.querySelectorAll(".scroll-soft").forEach((node) => {
+          node.scrollTop = 0;
+        });
       }
 
       function escapeHtml(value) {

@@ -21,6 +21,8 @@
         --topbar-height: clamp(100px, 13vh, 136px);
         --portrait-max: 250px;
         --publication-right-pad: 26px;
+        --project-copy-width: min(10vw, 136px);
+        --project-right-trim: 72px;
       }
 
       * {
@@ -589,15 +591,16 @@
 
       .project-copy {
         grid-column: 1 / span 6;
-        padding-bottom: 18px;
-        border-bottom: 1px solid rgba(17, 17, 17, 0.16);
+        width: var(--project-copy-width);
         text-align: right;
         align-self: end;
+        justify-self: end;
       }
 
       .project-media {
         grid-column: 7 / -1;
         align-self: end;
+        width: calc(100% - var(--project-right-trim));
       }
 
       .project-link {
@@ -637,6 +640,7 @@
         font-size: 0.95rem;
         line-height: 1.35;
         color: var(--muted);
+        overflow-wrap: anywhere;
       }
 
       .project-editor-images {

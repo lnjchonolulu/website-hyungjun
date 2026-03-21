@@ -43,8 +43,9 @@
       }
 
       .page {
+        position: relative;
         height: 100vh;
-        padding: var(--page-pad-top) 28px 20px;
+        padding: 0 20px 20px 28px;
       }
 
       .topbar {
@@ -53,6 +54,11 @@
         gap: 18px;
         align-items: start;
         min-height: var(--topbar-height);
+        position: absolute;
+        top: var(--page-pad-top);
+        left: 28px;
+        right: 20px;
+        z-index: 20;
       }
 
       .brand {
@@ -66,7 +72,7 @@
 
       .nav {
         display: flex;
-        justify-content: space-between;
+        justify-content: flex-end;
         gap: clamp(18px, 2vw, 28px);
         padding-top: 2px;
         grid-column: 7 / -1;
@@ -74,13 +80,16 @@
 
       .nav-btn {
         border: 0;
-        background: transparent;
-        padding: 0;
+        background: rgba(245, 242, 236, 0.62);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        padding: 9px 16px;
         font: inherit;
         font-size: 0.98rem;
         color: var(--muted);
         cursor: pointer;
         transition: color 0.18s ease;
+        border-radius: 999px;
       }
 
       .nav-btn:hover,
@@ -153,15 +162,15 @@
       }
 
       .stack-panel {
-        padding-top: 34px;
-        height: calc(100vh - var(--page-pad-top) - var(--topbar-height) - 20px);
+        padding-top: calc(var(--page-pad-top) + var(--topbar-height) + 12px);
+        height: 100%;
         overflow-y: auto;
         padding-right: 6px;
       }
 
       .publication-panel {
-        padding-top: 34px;
-        height: calc(100vh - var(--page-pad-top) - var(--topbar-height) - 20px);
+        padding-top: calc(var(--page-pad-top) + var(--topbar-height) + 12px);
+        height: 100%;
         overflow-y: auto;
         padding-right: 6px;
       }
@@ -519,7 +528,7 @@
       }
 
       .contact-panel {
-        padding-top: 34px;
+        padding-top: calc(var(--page-pad-top) + var(--topbar-height) + 12px);
       }
 
       .contact-copy {
@@ -571,6 +580,7 @@
         .topbar {
           grid-template-columns: 1fr;
           min-height: auto;
+          position: static;
         }
 
         .nav {

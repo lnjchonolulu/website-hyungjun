@@ -79,7 +79,7 @@
         position: relative;
         border: 0;
         background: transparent;
-        padding: 0;
+        padding: 8px 14px 8px 0;
         font: inherit;
         font-size: 0.98rem;
         color: var(--muted);
@@ -91,7 +91,10 @@
       .nav-btn::before {
         content: "";
         position: absolute;
-        inset: -8px -14px;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
         background: rgba(245, 242, 236, 0.58);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
@@ -230,6 +233,7 @@
       .publication-list {
         grid-column: 7 / -1;
         padding-top: 18px;
+        padding-left: 18px;
       }
 
       .publication-item {
@@ -648,6 +652,10 @@
 
         .publication-year {
           font-size: 1.5rem;
+        }
+
+        .publication-list {
+          padding-left: 0;
         }
 
         .entry > div:first-child,

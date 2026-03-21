@@ -220,7 +220,7 @@
         grid-column: 10 / span 3;
       }
 
-      .stack-panel {
+      .project-panel {
         margin-top: calc(-1 * var(--topbar-height));
         padding-top: 34px;
         padding-top: calc(var(--topbar-height) + 34px);
@@ -567,47 +567,101 @@
         scrollbar-color: rgba(194, 183, 160, 0.72) transparent;
       }
 
-      .stack-title {
+      .project-list {
+        display: flex;
+        flex-direction: column;
+        gap: 26px;
+      }
+
+      .contact-title {
         margin: 0 0 26px;
         font-size: clamp(1.8rem, 4vw, 2.8rem);
         line-height: 0.95;
         letter-spacing: -0.05em;
       }
 
-      .stack-list {
-        border-top: 1px solid var(--line);
-      }
-
-      .entry {
+      .project-item {
         display: grid;
         grid-template-columns: repeat(12, minmax(0, 1fr));
         gap: 18px;
-        padding: 16px 0;
+        align-items: end;
+      }
+
+      .project-copy {
+        grid-column: 1 / span 6;
+        padding-bottom: 18px;
         border-bottom: 1px solid rgba(17, 17, 17, 0.16);
+        text-align: right;
+        align-self: end;
       }
 
-      .entry > div:first-child {
-        grid-column: 1 / span 8;
+      .project-media {
+        grid-column: 7 / -1;
+        align-self: end;
       }
 
-      .entry-title {
+      .project-link {
+        display: block;
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .project-image {
+        display: block;
+        width: 100%;
+        aspect-ratio: 1.45 / 1;
+        object-fit: cover;
+        filter: grayscale(82%) sepia(10%) saturate(72%) contrast(1.02) brightness(1.01);
+        transition: filter 0.2s ease;
+      }
+
+      .project-link:hover .project-image {
+        filter: none;
+      }
+
+      .project-title {
         margin: 0;
-        font-size: 1.06rem;
+        font-size: 1.02rem;
         font-weight: 500;
+        line-height: 1.2;
       }
 
-      .entry-meta {
+      .project-venue {
         margin: 6px 0 0;
+        font-size: 0.93rem;
         color: var(--muted);
+      }
+
+      .project-summary {
+        margin: 6px 0 0;
         font-size: 0.95rem;
         line-height: 1.35;
+        color: var(--muted);
       }
 
-      .entry-side {
-        font-size: 0.95rem;
-        color: var(--muted);
-        text-align: right;
-        grid-column: 10 / span 3;
+      .project-editor-images {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .project-thumb {
+        position: relative;
+        width: 108px;
+      }
+
+      .project-thumb img {
+        width: 100%;
+        aspect-ratio: 1 / 0.8;
+        object-fit: cover;
+        display: block;
+        border-radius: 10px;
+      }
+
+      .project-thumb button {
+        width: 100%;
+        margin-top: 6px;
       }
 
       .contact-panel {
@@ -857,7 +911,7 @@
           max-width: none;
         }
 
-        .entry {
+        .project-item {
           grid-template-columns: 1fr;
           gap: 10px;
         }
@@ -904,12 +958,12 @@
           padding-left: 0;
         }
 
-        .entry > div:first-child,
-        .entry-side {
+        .project-copy,
+        .project-media {
           grid-column: 1;
         }
 
-        .entry-side {
+        .project-copy {
           text-align: left;
         }
 
@@ -933,7 +987,7 @@
         }
 
         .publication-panel,
-        .stack-panel,
+        .project-panel,
         .about-panel {
           height: auto;
           overflow: visible;
@@ -1053,44 +1107,12 @@
         <div id="publications-render"></div>
       </section>
 
-      <section id="projects" class="panel stack-panel scroll-soft">
-        <h2 class="stack-title">Selected Projects</h2>
-        <div class="stack-list">
-          <article class="entry">
-            <div>
-              <h3 class="entry-title">Trust-Aware Scientific Assistant</h3>
-              <p class="entry-meta">
-                An interface prototype for research workflows that exposes uncertainty, provenance,
-                and verification cues.
-              </p>
-            </div>
-            <div class="entry-side">Research System</div>
-          </article>
-          <article class="entry">
-            <div>
-              <h3 class="entry-title">Multimodal Lab Notebook Intelligence</h3>
-              <p class="entry-meta">
-                A retrieval and synthesis environment spanning PDFs, notes, screenshots, and
-                experimental logs.
-              </p>
-            </div>
-            <div class="entry-side">HCI + AI</div>
-          </article>
-          <article class="entry">
-            <div>
-              <h3 class="entry-title">Public Interest Model Observatory</h3>
-              <p class="entry-meta">
-                Ongoing work tracking behavioral drift and social impact patterns in deployed
-                foundation models.
-              </p>
-            </div>
-            <div class="entry-side">Monitoring</div>
-          </article>
-        </div>
+      <section id="projects" class="panel project-panel scroll-soft">
+        <div id="projects-render"></div>
       </section>
 
       <section id="contact" class="panel contact-panel">
-        <h2 class="stack-title">Contact</h2>
+        <h2 class="contact-title">Contact</h2>
         <p class="contact-copy">
           For collaborations, research conversations, or invited talks, reach out at
           <a class="contact-link" href="mailto:your.email@domain.com">your.email@domain.com</a>.
@@ -1153,23 +1175,45 @@
       </div>
     </div>
 
+    <div class="modal" id="projects-editor-modal" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-scroll">
+          <h2>Edit Projects</h2>
+          <p class="modal-copy">Update project order, text, and images. Images are stored with the project data for now.</p>
+          <div id="projects-editor-root"></div>
+          <p class="editor-status" id="projects-editor-status"></p>
+        </div>
+        <div class="modal-footer">
+          <div class="modal-actions">
+            <button class="action-btn" type="button" id="add-project">Add Project</button>
+            <button class="action-btn primary" type="button" id="save-projects">Save Changes</button>
+            <button class="action-btn ghost" type="button" id="close-projects-editor">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script>
       const buttons = document.querySelectorAll(".nav-btn, .brand-btn");
       const panels = document.querySelectorAll(".panel");
       const API_BASE = "/api";
       let publications = [];
       let aboutContent = null;
+      let projects = [];
       let activeTab = "home";
       let draggedItem = null;
       let aboutEditorSection = null;
       let aboutDraggedItem = null;
+      let projectDraggedIndex = null;
 
       const publicationsRender = document.querySelector("#publications-render");
       const aboutRender = document.querySelector("#about-render");
+      const projectsRender = document.querySelector("#projects-render");
       const editTrigger = document.querySelector("#edit-trigger");
       const passwordModal = document.querySelector("#password-modal");
       const editorModal = document.querySelector("#editor-modal");
       const aboutEditorModal = document.querySelector("#about-editor-modal");
+      const projectsEditorModal = document.querySelector("#projects-editor-modal");
       const aboutEditorTitle = document.querySelector("#about-editor-title");
       const aboutEditorCopy = document.querySelector("#about-editor-copy");
       const passwordInput = document.querySelector("#password-input");
@@ -1180,11 +1224,16 @@
       const editorStatus = document.querySelector("#editor-status");
       const aboutEditorRoot = document.querySelector("#about-editor-root");
       const aboutEditorStatus = document.querySelector("#about-editor-status");
+      const projectsEditorRoot = document.querySelector("#projects-editor-root");
+      const projectsEditorStatus = document.querySelector("#projects-editor-status");
       const addYearButton = document.querySelector("#add-year");
       const savePublicationsButton = document.querySelector("#save-publications");
       const closeEditorButton = document.querySelector("#close-editor");
       const saveAboutButton = document.querySelector("#save-about");
       const closeAboutEditorButton = document.querySelector("#close-about-editor");
+      const addProjectButton = document.querySelector("#add-project");
+      const saveProjectsButton = document.querySelector("#save-projects");
+      const closeProjectsEditorButton = document.querySelector("#close-projects-editor");
 
       updateEditTrigger(activeTab);
 
@@ -1199,7 +1248,7 @@
       });
 
       function updateEditTrigger(tab) {
-        editTrigger.classList.toggle("visible", tab === "publications");
+        editTrigger.classList.toggle("visible", tab === "publications" || tab === "projects");
       }
 
       function resetPanelScroll(tab) {
@@ -1251,6 +1300,37 @@
         }
 
         return payload;
+      }
+
+      async function uploadProjectAsset(file) {
+        const payload = await requestJson(`${API_BASE}/projects/upload-url`, {
+          method: "POST",
+          body: JSON.stringify({
+            filename: file.name,
+            contentType: file.type || "application/octet-stream",
+          }),
+        });
+
+        const response = await fetch(payload.uploadUrl, {
+          method: "PUT",
+          headers: {
+            "Content-Type": file.type || "application/octet-stream",
+          },
+          body: file,
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to upload image.");
+        }
+
+        return payload.publicUrl;
+      }
+
+      async function deleteProjectAsset(imageUrl) {
+        await requestJson(`${API_BASE}/projects/delete-image`, {
+          method: "POST",
+          body: JSON.stringify({ imageUrl }),
+        });
       }
 
       function renderPublications() {
@@ -1346,6 +1426,31 @@
         `;
       }
 
+      function renderProjects() {
+        projectsRender.innerHTML = `
+          <div class="project-list">
+            ${projects
+              .map(
+                (project) => `
+                  <article class="project-item">
+                    <div class="project-copy">
+                      <h3 class="project-title">${escapeHtml(project.title)}</h3>
+                      <p class="project-venue">${escapeHtml(project.venue)}</p>
+                      <p class="project-summary">${escapeHtml(project.summary)}</p>
+                    </div>
+                    <div class="project-media">
+                      <a class="project-link" href="#" aria-label="${escapeHtml(project.title)}">
+                        <img class="project-image" src="${escapeHtml(project.heroImage || "./hero.jpg")}" alt="${escapeHtml(project.title)}" />
+                      </a>
+                    </div>
+                  </article>
+                `
+              )
+              .join("")}
+          </div>
+        `;
+      }
+
       function renderEditor() {
         sortPublicationYears();
         editorRoot.innerHTML = publications
@@ -1432,6 +1537,66 @@
         `;
       }
 
+      function renderProjectsEditor() {
+        projectsEditorRoot.innerHTML = projects
+          .map(
+            (project, index) => `
+              <section class="editor-year">
+                <div class="editor-entry" draggable="true" data-project-index="${index}">
+                  <div class="editor-year-head">
+                    <div>
+                      <h3 class="editor-year-title">Project ${index + 1}</h3>
+                      <div class="editor-year-badge">${escapeHtml(project.title || "Untitled")}</div>
+                    </div>
+                    <button class="action-btn ghost editor-danger" type="button" data-remove-project="${index}">Delete</button>
+                  </div>
+                  <div class="editor-grid">
+                    <input class="text-input full" data-project-field="title" data-index="${index}" value="${escapeHtml(project.title)}" placeholder="Project name" />
+                    <input class="text-input full" data-project-field="venue" data-index="${index}" value="${escapeHtml(project.venue)}" placeholder="Venue" />
+                    <input class="text-input full" data-project-field="summary" data-index="${index}" value="${escapeHtml(project.summary)}" placeholder="Short summary" />
+                    <textarea class="text-area full" data-project-field="description" data-index="${index}" placeholder="Detailed description">${escapeHtml(project.description)}</textarea>
+                  </div>
+                  <div class="modal-actions">
+                    <label class="action-btn" for="hero-upload-${index}">Upload Cover</label>
+                    <input id="hero-upload-${index}" type="file" accept="image/*" data-project-upload="hero" data-index="${index}" hidden />
+                  </div>
+                  ${
+                    project.heroImage
+                      ? `<div class="project-editor-images">
+                          <div class="project-thumb">
+                            <img src="${escapeHtml(project.heroImage)}" alt="Cover image" />
+                            <button class="action-btn ghost editor-danger" type="button" data-remove-project-image="${index}:hero">Delete Cover</button>
+                          </div>
+                        </div>`
+                      : ""
+                  }
+                  <div class="modal-actions">
+                    <label class="action-btn" for="gallery-upload-${index}">Upload Detail Images</label>
+                    <input id="gallery-upload-${index}" type="file" accept="image/*" data-project-upload="gallery" data-index="${index}" multiple hidden />
+                  </div>
+                  ${
+                    project.galleryImages.length
+                      ? `<div class="project-editor-images">
+                          ${project.galleryImages
+                            .map(
+                              (image, imageIndex) => `
+                                <div class="project-thumb">
+                                  <img src="${escapeHtml(image)}" alt="Detail image ${imageIndex + 1}" />
+                                  <button class="action-btn ghost editor-danger" type="button" data-remove-project-image="${index}:${imageIndex}">Delete</button>
+                                </div>
+                              `
+                            )
+                            .join("")}
+                        </div>`
+                      : ""
+                  }
+                </div>
+              </section>
+            `
+          )
+          .join("");
+      }
+
       async function savePublications() {
         try {
           const payload = await requestJson(`${API_BASE}/publications`, {
@@ -1462,6 +1627,21 @@
         }
       }
 
+      async function saveProjects() {
+        try {
+          const payload = await requestJson(`${API_BASE}/projects`, {
+            method: "PUT",
+            body: JSON.stringify({ projects }),
+          });
+          projects = payload.projects;
+          renderProjects();
+          renderProjectsEditor();
+          projectsEditorStatus.textContent = "Saved.";
+        } catch (error) {
+          projectsEditorStatus.textContent = error.message;
+        }
+      }
+
       function openModal(modal) {
         modal.classList.add("open");
         modal.setAttribute("aria-hidden", "false");
@@ -1484,6 +1664,12 @@
         renderAbout();
       }
 
+      async function loadProjects() {
+        const payload = await requestJson(`${API_BASE}/projects`);
+        projects = payload.projects;
+        renderProjects();
+      }
+
       async function ensureSession() {
         const payload = await requestJson(`${API_BASE}/session`);
         return payload.authenticated;
@@ -1494,6 +1680,13 @@
           renderAboutEditor();
           aboutEditorStatus.textContent = "";
           openModal(aboutEditorModal);
+          return;
+        }
+
+        if (activeTab === "projects") {
+          renderProjectsEditor();
+          projectsEditorStatus.textContent = "";
+          openModal(projectsEditorModal);
           return;
         }
 
@@ -1543,6 +1736,13 @@
         passwordInput.focus();
       });
 
+      projectsRender.addEventListener("click", (event) => {
+        const link = event.target.closest(".project-link");
+        if (link) {
+          event.preventDefault();
+        }
+      });
+
       passwordCancel.addEventListener("click", () => closeModal(passwordModal));
 
       passwordSubmit.addEventListener("click", async () => {
@@ -1564,6 +1764,7 @@
 
       closeEditorButton.addEventListener("click", () => closeModal(editorModal));
       closeAboutEditorButton.addEventListener("click", () => closeModal(aboutEditorModal));
+      closeProjectsEditorButton.addEventListener("click", () => closeModal(projectsEditorModal));
 
       addYearButton.addEventListener("click", () => {
         publications.unshift({
@@ -1575,6 +1776,19 @@
 
       savePublicationsButton.addEventListener("click", () => void savePublications());
       saveAboutButton.addEventListener("click", () => void saveAbout());
+      saveProjectsButton.addEventListener("click", () => void saveProjects());
+      addProjectButton.addEventListener("click", () => {
+        projects.unshift({
+          id: `project-${Date.now()}`,
+          title: "",
+          venue: "",
+          summary: "",
+          description: "",
+          heroImage: "",
+          galleryImages: [],
+        });
+        renderProjectsEditor();
+      });
 
       editorRoot.addEventListener("input", (event) => {
         const target = event.target;
@@ -1770,10 +1984,143 @@
         renderAboutEditor();
       });
 
-      Promise.all([loadPublications(), loadAbout()]).catch((error) => {
+      projectsEditorRoot.addEventListener("input", (event) => {
+        const target = event.target;
+        const field = target.dataset.projectField;
+        const index = Number(target.dataset.index);
+        if (!field || Number.isNaN(index)) {
+          return;
+        }
+
+        projects[index][field] = target.value;
+      });
+
+      projectsEditorRoot.addEventListener("click", async (event) => {
+        const button = event.target.closest("button");
+        if (!button) {
+          return;
+        }
+
+        if (button.dataset.removeProject !== undefined) {
+          const projectIndex = Number(button.dataset.removeProject);
+          const project = projects[projectIndex];
+          const imageUrls = [project.heroImage, ...project.galleryImages].filter((url) => /^https?:\/\//.test(url));
+
+          try {
+            await Promise.all(imageUrls.map((url) => deleteProjectAsset(url)));
+          } catch (error) {
+            projectsEditorStatus.textContent = error.message;
+            return;
+          }
+
+          projects.splice(projectIndex, 1);
+          renderProjectsEditor();
+          return;
+        }
+
+        if (button.dataset.removeProjectImage !== undefined) {
+          const [projectIndexRaw, imageIndexRaw] = button.dataset.removeProjectImage.split(":");
+          const project = projects[Number(projectIndexRaw)];
+          const imageUrl =
+            imageIndexRaw === "hero" ? project.heroImage : project.galleryImages[Number(imageIndexRaw)];
+
+          try {
+            if (imageUrl && /^https?:\/\//.test(imageUrl)) {
+              await deleteProjectAsset(imageUrl);
+            }
+          } catch (error) {
+            projectsEditorStatus.textContent = error.message;
+            return;
+          }
+
+          if (imageIndexRaw === "hero") {
+            project.heroImage = "";
+          } else {
+            project.galleryImages.splice(Number(imageIndexRaw), 1);
+          }
+          renderProjectsEditor();
+        }
+      });
+
+      projectsEditorRoot.addEventListener("change", async (event) => {
+        const input = event.target;
+        const uploadType = input.dataset.projectUpload;
+        const index = Number(input.dataset.index);
+        if (!uploadType || Number.isNaN(index) || !input.files?.length) {
+          return;
+        }
+
+        projectsEditorStatus.textContent = "Uploading...";
+        const files = Array.from(input.files);
+        let uploadedUrls;
+
+        try {
+          uploadedUrls = await Promise.all(files.map((file) => uploadProjectAsset(file)));
+        } catch (error) {
+          projectsEditorStatus.textContent = error.message;
+          input.value = "";
+          return;
+        }
+
+        if (uploadType === "hero") {
+          projects[index].heroImage = uploadedUrls[0] || "";
+        } else {
+          projects[index].galleryImages.push(...uploadedUrls);
+        }
+
+        input.value = "";
+        projectsEditorStatus.textContent = "";
+        renderProjectsEditor();
+      });
+
+      projectsEditorRoot.addEventListener("dragstart", (event) => {
+        const entry = event.target.closest("[data-project-index]");
+        if (!entry) {
+          return;
+        }
+
+        projectDraggedIndex = Number(entry.dataset.projectIndex);
+        entry.classList.add("dragging");
+      });
+
+      projectsEditorRoot.addEventListener("dragend", () => {
+        projectDraggedIndex = null;
+        projectsEditorRoot.querySelectorAll("[data-project-index]").forEach((entry) => {
+          entry.classList.remove("dragging", "drop-target");
+        });
+      });
+
+      projectsEditorRoot.addEventListener("dragover", (event) => {
+        const entry = event.target.closest("[data-project-index]");
+        if (!entry || projectDraggedIndex === null) {
+          return;
+        }
+
+        event.preventDefault();
+        projectsEditorRoot.querySelectorAll("[data-project-index]").forEach((item) => {
+          item.classList.remove("drop-target");
+        });
+        entry.classList.add("drop-target");
+      });
+
+      projectsEditorRoot.addEventListener("drop", (event) => {
+        const entry = event.target.closest("[data-project-index]");
+        if (!entry || projectDraggedIndex === null) {
+          return;
+        }
+
+        event.preventDefault();
+        const toIndex = Number(entry.dataset.projectIndex);
+        const [moved] = projects.splice(projectDraggedIndex, 1);
+        projects.splice(toIndex, 0, moved);
+        renderProjectsEditor();
+      });
+
+      Promise.all([loadPublications(), loadAbout(), loadProjects()]).catch((error) => {
         const message = `<p class="publication-authors">${escapeHtml(error.message)}</p>`;
         publicationsRender.innerHTML = message;
         aboutRender.innerHTML = message;
+        projectsRender.innerHTML = message;
       });
     </script>
   </body>

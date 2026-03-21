@@ -2,6 +2,8 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 
+const { S3Client, DeleteObjectCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const express = require("express");
 const { Pool } = require("pg");
 
@@ -11,6 +13,11 @@ const PORT = Number(process.env.PORT || 3000);
 const DATABASE_URL = process.env.DATABASE_URL;
 const SESSION_SECRET = process.env.SESSION_SECRET;
 const ADMIN_PASSWORD_SHA256 = process.env.ADMIN_PASSWORD_SHA256;
+const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
+const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
+const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
+const R2_BUCKET = process.env.R2_BUCKET;
+const R2_PUBLIC_BASE_URL = process.env.R2_PUBLIC_BASE_URL;
 const COOKIE_NAME = "hjc_admin_session";
 const SESSION_MAX_AGE_MS = 1000 * 60 * 60 * 12;
 
@@ -114,6 +121,29 @@ const defaultAbout = {
   ],
 };
 
+const defaultProjects = [
+  {
+    id: "project-1",
+    title: "Trust-Aware Scientific Assistant",
+    venue: "Research System",
+    summary: "An interface prototype for research workflows that exposes uncertainty, provenance, and verification cues.",
+    description:
+      "A longer project description can live here for future detail pages, editor notes, or expanded project context.",
+    heroImage: "./hero.jpg",
+    galleryImages: [],
+  },
+  {
+    id: "project-2",
+    title: "Public Interest Model Observatory",
+    venue: "Monitoring",
+    summary: "Ongoing work tracking behavioral drift and social impact patterns in deployed foundation models.",
+    description:
+      "This placeholder project gives the Projects tab enough visual structure before final images and copy are added.",
+    heroImage: "./hero.jpg",
+    galleryImages: [],
+  },
+];
+
 if (!DATABASE_URL) {
   throw new Error("DATABASE_URL is required.");
 }
@@ -130,6 +160,21 @@ const pool = new Pool({
   connectionString: DATABASE_URL,
   ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
 });
+
+const r2Configured = Boolean(
+  R2_ACCOUNT_ID && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY && R2_BUCKET && R2_PUBLIC_BASE_URL
+);
+
+const r2Client = r2Configured
+  ? new S3Client({
+      region: "auto",
+      endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId: R2_ACCESS_KEY_ID,
+        secretAccessKey: R2_SECRET_ACCESS_KEY,
+      },
+    })
+  : null;
 
 const app = express();
 app.use(express.json({ limit: "1mb" }));
@@ -187,6 +232,33 @@ function base64UrlDecode(value) {
 
 function sign(value) {
   return crypto.createHmac("sha256", SESSION_SECRET).update(value).digest("base64url");
+}
+
+function slugify(value) {
+  return String(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 64);
+}
+
+function getProjectAssetKey(filename = "upload") {
+  const extension = path.extname(filename).toLowerCase() || ".bin";
+  const base = slugify(path.basename(filename, extension)) || "image";
+  return `projects/${Date.now()}-${crypto.randomUUID()}-${base}${extension}`;
+}
+
+function getPublicAssetUrl(key) {
+  return `${String(R2_PUBLIC_BASE_URL).replace(/\/+$/, "")}/${key}`;
+}
+
+function getAssetKeyFromUrl(url) {
+  const base = `${String(R2_PUBLIC_BASE_URL).replace(/\/+$/, "")}/`;
+  if (!url.startsWith(base)) {
+    return null;
+  }
+
+  return url.slice(base.length);
 }
 
 function createSessionToken() {
@@ -296,6 +368,26 @@ function validateAbout(payload) {
   );
 }
 
+function validateProjects(payload) {
+  if (!Array.isArray(payload)) {
+    return false;
+  }
+
+  return payload.every((project) => {
+    return (
+      project &&
+      typeof project.id === "string" &&
+      typeof project.title === "string" &&
+      typeof project.venue === "string" &&
+      typeof project.summary === "string" &&
+      typeof project.description === "string" &&
+      typeof project.heroImage === "string" &&
+      Array.isArray(project.galleryImages) &&
+      project.galleryImages.every((image) => typeof image === "string")
+    );
+  });
+}
+
 function groupRows(rows) {
   const grouped = [];
   let current = null;
@@ -391,6 +483,27 @@ async function saveAbout(about) {
   );
 }
 
+async function loadProjects() {
+  const { rows } = await pool.query("SELECT value FROM site_content WHERE key = 'projects'");
+  if (rows.length === 0) {
+    return defaultProjects;
+  }
+
+  return rows[0].value;
+}
+
+async function saveProjects(projects) {
+  await pool.query(
+    `
+      INSERT INTO site_content (key, value, updated_at)
+      VALUES ('projects', $1::jsonb, NOW())
+      ON CONFLICT (key)
+      DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
+    `,
+    [JSON.stringify(projects)]
+  );
+}
+
 async function ensureSchema() {
   const schemaPath = path.join(process.cwd(), "db", "schema.sql");
   const schemaSql = fs.readFileSync(schemaPath, "utf8");
@@ -404,6 +517,11 @@ async function ensureSchema() {
   const aboutRows = await pool.query("SELECT COUNT(*)::int AS count FROM site_content WHERE key = 'about'");
   if (aboutRows.rows[0].count === 0) {
     await saveAbout(defaultAbout);
+  }
+
+  const projectRows = await pool.query("SELECT COUNT(*)::int AS count FROM site_content WHERE key = 'projects'");
+  if (projectRows.rows[0].count === 0) {
+    await saveProjects(defaultProjects);
   }
 }
 
@@ -474,6 +592,81 @@ app.get("/api/about", async (_req, res) => {
   }
 });
 
+app.get("/api/projects", async (_req, res) => {
+  try {
+    const projects = await loadProjects();
+    res.json({ projects });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to load projects." });
+  }
+});
+
+app.post("/api/projects/upload-url", authMiddleware, async (req, res) => {
+  if (!r2Configured || !r2Client) {
+    res.status(503).json({ error: "R2 storage is not configured yet." });
+    return;
+  }
+
+  const filename = req.body?.filename;
+  const contentType = req.body?.contentType;
+  if (typeof filename !== "string" || typeof contentType !== "string") {
+    res.status(400).json({ error: "filename and contentType are required." });
+    return;
+  }
+
+  try {
+    const key = getProjectAssetKey(filename);
+    const command = new PutObjectCommand({
+      Bucket: R2_BUCKET,
+      Key: key,
+      ContentType: contentType,
+    });
+
+    const uploadUrl = await getSignedUrl(r2Client, command, { expiresIn: 60 * 5 });
+    res.json({
+      uploadUrl,
+      publicUrl: getPublicAssetUrl(key),
+      key,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to prepare upload." });
+  }
+});
+
+app.post("/api/projects/delete-image", authMiddleware, async (req, res) => {
+  if (!r2Configured || !r2Client) {
+    res.status(503).json({ error: "R2 storage is not configured yet." });
+    return;
+  }
+
+  const imageUrl = req.body?.imageUrl;
+  if (typeof imageUrl !== "string") {
+    res.status(400).json({ error: "imageUrl is required." });
+    return;
+  }
+
+  const key = getAssetKeyFromUrl(imageUrl);
+  if (!key) {
+    res.status(400).json({ error: "Image URL does not belong to configured R2 storage." });
+    return;
+  }
+
+  try {
+    await r2Client.send(
+      new DeleteObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: key,
+      })
+    );
+    res.json({ ok: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to delete image." });
+  }
+});
+
 app.put("/api/publications", authMiddleware, async (req, res) => {
   const nextPublications = req.body?.publications;
 
@@ -506,6 +699,23 @@ app.put("/api/about", authMiddleware, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to save about content." });
+  }
+});
+
+app.put("/api/projects", authMiddleware, async (req, res) => {
+  const projects = req.body?.projects;
+
+  if (!validateProjects(projects)) {
+    res.status(400).json({ error: "Invalid project payload." });
+    return;
+  }
+
+  try {
+    await saveProjects(projects);
+    res.json({ projects: await loadProjects() });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to save projects." });
   }
 });
 

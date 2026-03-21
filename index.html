@@ -53,6 +53,8 @@
         gap: 18px;
         align-items: start;
         min-height: var(--topbar-height);
+        position: relative;
+        z-index: 4;
       }
 
       .brand {
@@ -77,7 +79,7 @@
         background: rgba(245, 242, 236, 0.58);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
-        padding: 8px 14px;
+        padding: 8px 14px 8px 10px;
         font: inherit;
         font-size: 0.98rem;
         color: var(--muted);
@@ -156,16 +158,19 @@
       }
 
       .stack-panel {
+        margin-top: calc(-1 * var(--topbar-height));
         padding-top: 34px;
-        height: calc(100vh - var(--page-pad-top) - var(--topbar-height) - 20px);
+        padding-top: calc(var(--topbar-height) + 34px);
+        height: calc(100vh - var(--page-pad-top) - 20px);
         overflow-y: auto;
         padding-right: 6px;
         scrollbar-gutter: stable;
       }
 
       .publication-panel {
-        padding-top: 34px;
-        height: calc(100vh - var(--page-pad-top) - var(--topbar-height) - 20px);
+        margin-top: calc(-1 * var(--topbar-height));
+        padding-top: calc(var(--topbar-height) + 34px);
+        height: calc(100vh - var(--page-pad-top) - 20px);
         overflow-y: auto;
         padding-right: 6px;
         scrollbar-gutter: stable;
@@ -525,7 +530,8 @@
       }
 
       .contact-panel {
-        padding-top: 34px;
+        margin-top: calc(-1 * var(--topbar-height));
+        padding-top: calc(var(--topbar-height) + 34px);
       }
 
       .contact-copy {
@@ -666,7 +672,14 @@
         .stack-panel {
           height: auto;
           overflow: visible;
+          margin-top: 0;
+          padding-top: 34px;
           padding-right: 0;
+        }
+
+        .contact-panel {
+          margin-top: 0;
+          padding-top: 34px;
         }
 
         .hero-panel {

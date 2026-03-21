@@ -223,8 +223,6 @@
 
       .project-panel {
         margin-top: calc(-1 * var(--topbar-height));
-        padding-top: 34px;
-        padding-top: calc(var(--topbar-height) + 34px);
         height: calc(100vh - var(--page-pad-top) - 20px);
         overflow-y: auto;
         padding-right: 6px;
@@ -572,7 +570,10 @@
         display: flex;
         flex-direction: column;
         gap: 26px;
-        padding-top: 8px;
+      }
+
+      .project-item:first-child {
+        margin-top: calc(var(--topbar-height) + 42px);
       }
 
       .contact-title {

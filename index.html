@@ -414,11 +414,20 @@
       .editor-entry {
         padding: 12px 0;
         border-top: 1px solid rgba(17, 17, 17, 0.08);
+        cursor: grab;
       }
 
       .editor-entry:first-of-type {
         border-top: 0;
         padding-top: 2px;
+      }
+
+      .editor-entry.dragging {
+        opacity: 0.45;
+      }
+
+      .editor-entry.drop-target {
+        border-top-color: rgba(123, 111, 84, 0.6);
       }
 
       .editor-grid {
@@ -437,6 +446,33 @@
 
       .editor-year-input {
         max-width: 140px;
+      }
+
+      .scroll-soft::-webkit-scrollbar,
+      .modal-card::-webkit-scrollbar {
+        width: 10px;
+      }
+
+      .scroll-soft::-webkit-scrollbar-track,
+      .modal-card::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      .scroll-soft::-webkit-scrollbar-thumb,
+      .modal-card::-webkit-scrollbar-thumb {
+        background: rgba(194, 183, 160, 0.72);
+        border-radius: 999px;
+      }
+
+      .scroll-soft::-webkit-scrollbar-thumb:hover,
+      .modal-card::-webkit-scrollbar-thumb:hover {
+        background: rgba(175, 163, 140, 0.82);
+      }
+
+      .scroll-soft,
+      .modal-card {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(194, 183, 160, 0.72) transparent;
       }
 
       .stack-title {
@@ -683,11 +719,11 @@
         </div>
       </section>
 
-      <section id="publications" class="panel publication-panel">
+      <section id="publications" class="panel publication-panel scroll-soft">
         <div id="publications-render"></div>
       </section>
 
-      <section id="projects" class="panel stack-panel">
+      <section id="projects" class="panel stack-panel scroll-soft">
         <h2 class="stack-title">Selected Projects</h2>
         <div class="stack-list">
           <article class="entry">
@@ -781,6 +817,7 @@
       const addYearButton = document.querySelector("#add-year");
       const savePublicationsButton = document.querySelector("#save-publications");
       const closeEditorButton = document.querySelector("#close-editor");
+      let draggedItem = null;
 
       updateEditTrigger("about");
 
@@ -815,6 +852,10 @@
         );
       }
 
+      function sortPublicationYears() {
+        publications.sort((left, right) => Number(right.year) - Number(left.year));
+      }
+
       async function requestJson(url, options = {}) {
         const response = await fetch(url, {
           credentials: "same-origin",
@@ -834,6 +875,7 @@
       }
 
       function renderPublications() {
+        sortPublicationYears();
         publicationsRender.innerHTML = publications
           .map((group) => {
             const items = group.items
@@ -860,12 +902,13 @@
       }
 
       function renderEditor() {
+        sortPublicationYears();
         editorRoot.innerHTML = publications
           .map((group, groupIndex) => {
             const items = group.items
               .map(
                 (item, itemIndex) => `
-                  <div class="editor-entry" data-group-index="${groupIndex}" data-item-index="${itemIndex}">
+                  <div class="editor-entry" draggable="true" data-group-index="${groupIndex}" data-item-index="${itemIndex}">
                     <div class="editor-grid">
                       <input class="text-input full" data-field="title" value="${escapeHtml(item.title)}" placeholder="Title" />
                       <input class="text-input full" data-field="authors" value="${escapeHtml(item.authors)}" placeholder="Authors" />
@@ -1039,6 +1082,61 @@
           publications.splice(groupIndex, 1);
           renderEditor();
         }
+      });
+
+      editorRoot.addEventListener("dragstart", (event) => {
+        const entry = event.target.closest(".editor-entry");
+        if (!entry) {
+          return;
+        }
+
+        draggedItem = {
+          groupIndex: Number(entry.dataset.groupIndex),
+          itemIndex: Number(entry.dataset.itemIndex),
+        };
+        entry.classList.add("dragging");
+      });
+
+      editorRoot.addEventListener("dragend", () => {
+        draggedItem = null;
+        editorRoot.querySelectorAll(".editor-entry").forEach((entry) => {
+          entry.classList.remove("dragging", "drop-target");
+        });
+      });
+
+      editorRoot.addEventListener("dragover", (event) => {
+        const entry = event.target.closest(".editor-entry");
+        if (!entry || !draggedItem) {
+          return;
+        }
+
+        const groupIndex = Number(entry.dataset.groupIndex);
+        if (groupIndex !== draggedItem.groupIndex) {
+          return;
+        }
+
+        event.preventDefault();
+        editorRoot.querySelectorAll(".editor-entry").forEach((item) => item.classList.remove("drop-target"));
+        entry.classList.add("drop-target");
+      });
+
+      editorRoot.addEventListener("drop", (event) => {
+        const entry = event.target.closest(".editor-entry");
+        if (!entry || !draggedItem) {
+          return;
+        }
+
+        const groupIndex = Number(entry.dataset.groupIndex);
+        const itemIndex = Number(entry.dataset.itemIndex);
+        if (groupIndex !== draggedItem.groupIndex) {
+          return;
+        }
+
+        event.preventDefault();
+        const items = publications[groupIndex].items;
+        const [moved] = items.splice(draggedItem.itemIndex, 1);
+        items.splice(itemIndex, 0, moved);
+        renderEditor();
       });
 
       loadPublications().catch((error) => {

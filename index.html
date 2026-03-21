@@ -79,7 +79,7 @@
         position: relative;
         border: 0;
         background: transparent;
-        padding: 8px 14px 8px 0;
+        padding: 0;
         font: inherit;
         font-size: 0.98rem;
         color: var(--muted);
@@ -91,10 +91,7 @@
       .nav-btn::before {
         content: "";
         position: absolute;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
+        inset: -8px -14px;
         background: rgba(245, 242, 236, 0.58);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);

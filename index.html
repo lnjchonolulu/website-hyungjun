@@ -360,6 +360,7 @@
         padding: 24px;
         background: rgba(17, 17, 17, 0.16);
         backdrop-filter: blur(6px);
+        z-index: 30;
       }
 
       .modal.open {
@@ -369,12 +370,14 @@
       .modal-card {
         width: min(720px, 100%);
         max-height: min(86vh, 920px);
-        overflow: auto;
-        padding: 22px;
+        overflow: hidden;
+        padding: 22px 22px 0;
         background: rgba(249, 247, 241, 0.96);
         border: 1px solid rgba(17, 17, 17, 0.14);
         border-radius: 18px;
         box-shadow: 0 24px 60px rgba(17, 17, 17, 0.14);
+        display: flex;
+        flex-direction: column;
       }
 
       .modal-card h2 {
@@ -419,6 +422,21 @@
         flex-wrap: wrap;
         gap: 10px;
         margin-top: 16px;
+      }
+
+      .modal-scroll {
+        min-height: 0;
+        overflow: auto;
+        padding-bottom: 18px;
+      }
+
+      .modal-footer {
+        position: sticky;
+        bottom: 0;
+        margin: 0 -22px;
+        padding: 14px 22px 18px;
+        background: rgba(249, 247, 241, 0.96);
+        border-top: 1px solid rgba(17, 17, 17, 0.08);
       }
 
       .action-btn {
@@ -645,15 +663,38 @@
       .about-bottom-right {
         display: flex;
         flex-direction: column;
+        height: 100%;
+        min-height: 0;
+        overflow: hidden;
+        padding-top: 8px;
       }
 
       .info-section-head {
         margin: 0;
-        padding: 0 0 12px;
         border-top: 1px solid var(--line);
         padding-top: 14px;
         font-size: 0.96rem;
         font-weight: 600;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 40px;
+      }
+
+      .section-add {
+        border: 0;
+        background: transparent;
+        padding: 0;
+        font: inherit;
+        font-size: 1.15rem;
+        line-height: 1;
+        color: rgba(17, 17, 17, 0.72);
+        cursor: pointer;
+      }
+
+      .section-add:hover {
         color: var(--text);
       }
 
@@ -1055,42 +1096,54 @@
 
     <div class="modal" id="password-modal" aria-hidden="true">
       <div class="modal-card">
-        <h2>Publication Editor</h2>
-        <p class="modal-copy">Enter the admin password to edit, add, or remove publication entries.</p>
-        <label class="field-label" for="password-input">Password</label>
-        <input class="text-input" id="password-input" type="password" autocomplete="current-password" />
-        <div class="modal-actions">
-          <button class="action-btn primary" type="button" id="password-submit">Continue</button>
-          <button class="action-btn ghost" type="button" id="password-cancel">Cancel</button>
+        <div class="modal-scroll">
+          <h2>Editor Access</h2>
+          <p class="modal-copy">Enter the admin password to edit this section.</p>
+          <label class="field-label" for="password-input">Password</label>
+          <input class="text-input" id="password-input" type="password" autocomplete="current-password" />
+          <p class="editor-status" id="password-status"></p>
         </div>
-        <p class="editor-status" id="password-status"></p>
+        <div class="modal-footer">
+          <div class="modal-actions">
+            <button class="action-btn primary" type="button" id="password-submit">Continue</button>
+            <button class="action-btn ghost" type="button" id="password-cancel">Cancel</button>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="modal" id="editor-modal" aria-hidden="true">
       <div class="modal-card">
-        <h2>Edit Publications</h2>
-        <p class="modal-copy">Changes are saved to the backend and remain after refresh or redeploy.</p>
-        <div id="editor-root"></div>
-        <div class="modal-actions">
-          <button class="action-btn" type="button" id="add-year">Add Year</button>
-          <button class="action-btn primary" type="button" id="save-publications">Save Changes</button>
-          <button class="action-btn ghost" type="button" id="close-editor">Close</button>
+        <div class="modal-scroll">
+          <h2>Edit Publications</h2>
+          <p class="modal-copy">Changes are saved to the backend and remain after refresh or redeploy.</p>
+          <div id="editor-root"></div>
+          <p class="editor-status" id="editor-status"></p>
         </div>
-        <p class="editor-status" id="editor-status"></p>
+        <div class="modal-footer">
+          <div class="modal-actions">
+            <button class="action-btn" type="button" id="add-year">Add Year</button>
+            <button class="action-btn primary" type="button" id="save-publications">Save Changes</button>
+            <button class="action-btn ghost" type="button" id="close-editor">Close</button>
+          </div>
+        </div>
       </div>
     </div>
 
     <div class="modal" id="about-editor-modal" aria-hidden="true">
       <div class="modal-card">
-        <h2>Edit About</h2>
-        <p class="modal-copy">Update Education, Research Interests, News, and Travel content.</p>
-        <div id="about-editor-root"></div>
-        <div class="modal-actions">
-          <button class="action-btn primary" type="button" id="save-about">Save Changes</button>
-          <button class="action-btn ghost" type="button" id="close-about-editor">Close</button>
+        <div class="modal-scroll">
+          <h2 id="about-editor-title">Edit About</h2>
+          <p class="modal-copy" id="about-editor-copy">Update section content.</p>
+          <div id="about-editor-root"></div>
+          <p class="editor-status" id="about-editor-status"></p>
         </div>
-        <p class="editor-status" id="about-editor-status"></p>
+        <div class="modal-footer">
+          <div class="modal-actions">
+            <button class="action-btn primary" type="button" id="save-about">Save Changes</button>
+            <button class="action-btn ghost" type="button" id="close-about-editor">Close</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1102,6 +1155,8 @@
       let aboutContent = null;
       let activeTab = "home";
       let draggedItem = null;
+      let aboutEditorSection = null;
+      let aboutDraggedItem = null;
 
       const publicationsRender = document.querySelector("#publications-render");
       const aboutRender = document.querySelector("#about-render");
@@ -1109,6 +1164,8 @@
       const passwordModal = document.querySelector("#password-modal");
       const editorModal = document.querySelector("#editor-modal");
       const aboutEditorModal = document.querySelector("#about-editor-modal");
+      const aboutEditorTitle = document.querySelector("#about-editor-title");
+      const aboutEditorCopy = document.querySelector("#about-editor-copy");
       const passwordInput = document.querySelector("#password-input");
       const passwordSubmit = document.querySelector("#password-submit");
       const passwordCancel = document.querySelector("#password-cancel");
@@ -1136,7 +1193,7 @@
       });
 
       function updateEditTrigger(tab) {
-        editTrigger.classList.toggle("visible", tab === "publications" || tab === "about");
+        editTrigger.classList.toggle("visible", tab === "publications");
       }
 
       function resetPanelScroll(tab) {
@@ -1266,11 +1323,17 @@
               </div>
             </section>
             <section class="info-section about-bottom-left">
-              <h2 class="info-section-head">News</h2>
+              <h2 class="info-section-head">
+                <span>News</span>
+                <button class="section-add" type="button" data-about-open="news" aria-label="Edit News">+</button>
+              </h2>
               <div class="info-list scroll-soft">${listHtml(aboutContent.news)}</div>
             </section>
             <section class="info-section about-bottom-right">
-              <h2 class="info-section-head">Travel</h2>
+              <h2 class="info-section-head">
+                <span>Travel</span>
+                <button class="section-add" type="button" data-about-open="travel" aria-label="Edit Travel">+</button>
+              </h2>
               <div class="info-list scroll-soft">${listHtml(aboutContent.travel)}</div>
             </section>
           </div>
@@ -1326,88 +1389,40 @@
           return;
         }
 
-        const educationHtml = aboutContent.education
-          .map((entry, index) => {
-            const details = entry.details.join("\n");
-            return `
-              <section class="editor-year">
-                <div class="editor-year-head">
-                  <div>
-                    <h3 class="editor-year-title">Education ${index + 1}</h3>
-                    <div class="editor-year-badge">Education</div>
-                  </div>
-                  <button class="action-btn ghost editor-danger" type="button" data-remove-about-education="${index}">Delete</button>
-                </div>
-                <div class="editor-grid">
-                  <input class="text-input full" data-about-field="education-degree" data-index="${index}" value="${escapeHtml(entry.degree)}" placeholder="Degree line" />
-                  <textarea class="text-area full" data-about-field="education-details" data-index="${index}" placeholder="One detail per line">${escapeHtml(details)}</textarea>
-                </div>
-              </section>
-            `;
-          })
-          .join("");
+        const sectionTitle = aboutEditorSection === "travel" ? "Travel" : "News";
+        const metaLabel = aboutEditorSection === "travel" ? "Date / Place" : "Date";
+        const items = aboutContent[aboutEditorSection] || [];
 
-        const interestsHtml = aboutContent.researchInterests
-          .map(
-            (entry, index) => `
-              <div class="editor-entry">
-                <div class="editor-grid">
-                  <input class="text-input full" data-about-field="interest" data-index="${index}" value="${escapeHtml(entry)}" placeholder="Research Interest" />
-                </div>
-                <div class="modal-actions">
-                  <button class="action-btn ghost editor-danger" type="button" data-remove-about-interest="${index}">Delete</button>
-                </div>
-              </div>
-            `
-          )
-          .join("");
+        aboutEditorTitle.textContent = `Edit ${sectionTitle}`;
+        aboutEditorCopy.textContent = `Update ${sectionTitle} items, reorder them, and save changes.`;
 
-        const simpleListEditor = (title, key, items, metaLabel) => `
+        aboutEditorRoot.innerHTML = `
           <section class="editor-year">
             <div class="editor-year-head">
               <div>
-                <h3 class="editor-year-title">${title}</h3>
-                <div class="editor-year-badge">${title}</div>
+                <h3 class="editor-year-title">${sectionTitle}</h3>
+                <div class="editor-year-badge">${sectionTitle}</div>
               </div>
             </div>
             ${items
               .map(
                 (entry, index) => `
-                  <div class="editor-entry">
+                  <div class="editor-entry" draggable="true" data-about-list="${aboutEditorSection}" data-about-index="${index}">
                     <div class="editor-grid">
-                      <input class="text-input full" data-about-field="${key}-title" data-index="${index}" value="${escapeHtml(entry.title)}" placeholder="Title" />
-                      <input class="text-input full" data-about-field="${key}-meta" data-index="${index}" value="${escapeHtml(entry.meta)}" placeholder="${metaLabel}" />
+                      <input class="text-input full" data-about-field="${aboutEditorSection}-title" data-index="${index}" value="${escapeHtml(entry.title)}" placeholder="Title" />
+                      <input class="text-input full" data-about-field="${aboutEditorSection}-meta" data-index="${index}" value="${escapeHtml(entry.meta)}" placeholder="${metaLabel}" />
                     </div>
                     <div class="modal-actions">
-                      <button class="action-btn ghost editor-danger" type="button" data-remove-about-item="${key}:${index}">Delete</button>
+                      <button class="action-btn ghost editor-danger" type="button" data-remove-about-item="${aboutEditorSection}:${index}">Delete</button>
                     </div>
                   </div>
                 `
               )
               .join("")}
             <div class="modal-actions">
-              <button class="action-btn" type="button" data-add-about-item="${key}">Add Item</button>
+              <button class="action-btn" type="button" data-add-about-item="${aboutEditorSection}">Add Item</button>
             </div>
           </section>
-        `;
-
-        aboutEditorRoot.innerHTML = `
-          ${educationHtml}
-          <section class="editor-year">
-            <div class="editor-year-head">
-              <div>
-                <h3 class="editor-year-title">Research Interests</h3>
-                <div class="editor-year-badge">Interests</div>
-              </div>
-            </div>
-            ${interestsHtml}
-            <div class="modal-actions">
-              <button class="action-btn" type="button" data-add-about-interest>Add Interest</button>
-              <button class="action-btn" type="button" data-add-about-education>Add Education</button>
-            </div>
-          </section>
-          ${simpleListEditor("News", "news", aboutContent.news, "Date")}
-          ${simpleListEditor("Travel", "travel", aboutContent.travel, "Date / Place")}
         `;
       }
 
@@ -1469,7 +1484,7 @@
       }
 
       function openEditorForActiveTab() {
-        if (activeTab === "about") {
+        if (activeTab === "about" && aboutEditorSection) {
           renderAboutEditor();
           aboutEditorStatus.textContent = "";
           openModal(aboutEditorModal);
@@ -1483,6 +1498,30 @@
 
       editTrigger.addEventListener("click", async () => {
         passwordStatus.textContent = "";
+        try {
+          const authenticated = await ensureSession();
+          if (authenticated) {
+            openEditorForActiveTab();
+            return;
+          }
+        } catch (_error) {
+          passwordStatus.textContent = "Could not reach the server.";
+        }
+
+        passwordInput.value = "";
+        openModal(passwordModal);
+        passwordInput.focus();
+      });
+
+      aboutRender.addEventListener("click", async (event) => {
+        const button = event.target.closest("[data-about-open]");
+        if (!button) {
+          return;
+        }
+
+        aboutEditorSection = button.dataset.aboutOpen;
+        passwordStatus.textContent = "";
+
         try {
           const authenticated = await ensureSession();
           if (authenticated) {
@@ -1640,24 +1679,6 @@
         const field = target.dataset.aboutField;
         const index = Number(target.dataset.index);
 
-        if (field === "education-degree") {
-          aboutContent.education[index].degree = target.value;
-          return;
-        }
-
-        if (field === "education-details") {
-          aboutContent.education[index].details = target.value
-            .split("\n")
-            .map((value) => value.trim())
-            .filter(Boolean);
-          return;
-        }
-
-        if (field === "interest") {
-          aboutContent.researchInterests[index] = target.value;
-          return;
-        }
-
         if (field === "news-title") {
           aboutContent.news[index].title = target.value;
           return;
@@ -1684,30 +1705,6 @@
           return;
         }
 
-        if (button.dataset.addAboutEducation !== undefined) {
-          aboutContent.education.push({ degree: "", details: [] });
-          renderAboutEditor();
-          return;
-        }
-
-        if (button.dataset.removeAboutEducation !== undefined) {
-          aboutContent.education.splice(Number(button.dataset.removeAboutEducation), 1);
-          renderAboutEditor();
-          return;
-        }
-
-        if (button.dataset.addAboutInterest !== undefined) {
-          aboutContent.researchInterests.push("");
-          renderAboutEditor();
-          return;
-        }
-
-        if (button.dataset.removeAboutInterest !== undefined) {
-          aboutContent.researchInterests.splice(Number(button.dataset.removeAboutInterest), 1);
-          renderAboutEditor();
-          return;
-        }
-
         if (button.dataset.addAboutItem !== undefined) {
           const key = button.dataset.addAboutItem;
           aboutContent[key].push({ title: "", meta: "" });
@@ -1720,6 +1717,51 @@
           aboutContent[key].splice(Number(index), 1);
           renderAboutEditor();
         }
+      });
+
+      aboutEditorRoot.addEventListener("dragstart", (event) => {
+        const entry = event.target.closest(".editor-entry");
+        if (!entry) {
+          return;
+        }
+
+        aboutDraggedItem = {
+          list: entry.dataset.aboutList,
+          index: Number(entry.dataset.aboutIndex),
+        };
+        entry.classList.add("dragging");
+      });
+
+      aboutEditorRoot.addEventListener("dragend", () => {
+        aboutDraggedItem = null;
+        aboutEditorRoot.querySelectorAll(".editor-entry").forEach((entry) => {
+          entry.classList.remove("dragging", "drop-target");
+        });
+      });
+
+      aboutEditorRoot.addEventListener("dragover", (event) => {
+        const entry = event.target.closest(".editor-entry");
+        if (!entry || !aboutDraggedItem || entry.dataset.aboutList !== aboutDraggedItem.list) {
+          return;
+        }
+
+        event.preventDefault();
+        aboutEditorRoot.querySelectorAll(".editor-entry").forEach((item) => item.classList.remove("drop-target"));
+        entry.classList.add("drop-target");
+      });
+
+      aboutEditorRoot.addEventListener("drop", (event) => {
+        const entry = event.target.closest(".editor-entry");
+        if (!entry || !aboutDraggedItem || entry.dataset.aboutList !== aboutDraggedItem.list) {
+          return;
+        }
+
+        event.preventDefault();
+        const list = aboutContent[aboutDraggedItem.list];
+        const toIndex = Number(entry.dataset.aboutIndex);
+        const [moved] = list.splice(aboutDraggedItem.index, 1);
+        list.splice(toIndex, 0, moved);
+        renderAboutEditor();
       });
 
       Promise.all([loadPublications(), loadAbout()]).catch((error) => {

@@ -717,6 +717,13 @@
         padding-top: calc(var(--topbar-height) - 20px);
         height: calc(100vh - var(--page-pad-top) - 20px);
         overflow: hidden;
+        position: relative;
+      }
+
+      #project-detail-render {
+        height: 100%;
+        min-height: 0;
+        position: relative;
       }
 
       .project-detail-grid {
@@ -727,6 +734,7 @@
         height: 100%;
         min-height: 0;
         grid-template-rows: auto minmax(0, 1fr);
+        padding-bottom: 112px;
       }
 
       .project-detail-copy {
@@ -768,15 +776,15 @@
       }
 
       .project-detail-strip {
-        grid-column: 1 / -1;
-        grid-row: 2;
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 18px;
         display: flex;
         gap: 18px;
         align-items: end;
-        align-self: end;
         overflow-x: auto;
         overflow-y: hidden;
-        margin-bottom: 18px;
         padding-bottom: 0;
         scrollbar-gutter: stable;
       }

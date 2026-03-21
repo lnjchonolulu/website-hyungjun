@@ -714,7 +714,7 @@
 
       .project-detail-panel {
         margin-top: calc(-1 * var(--topbar-height));
-        padding-top: calc(var(--topbar-height) + 34px);
+        padding-top: calc(var(--topbar-height) + 8px);
         height: calc(100vh - var(--page-pad-top) - 20px);
         overflow: hidden;
       }
@@ -722,7 +722,8 @@
       .project-detail-grid {
         display: grid;
         grid-template-columns: repeat(12, minmax(0, 1fr));
-        gap: 18px;
+        column-gap: 18px;
+        row-gap: 8px;
         height: 100%;
         min-height: 0;
         grid-template-rows: auto auto minmax(0, 1fr);
@@ -1343,6 +1344,7 @@
       let activeTab = "home";
       let previousTabBeforeDetail = null;
       let projectDetailState = null;
+      let suppressHashRoute = false;
       let draggedItem = null;
       let aboutEditorSection = null;
       let aboutDraggedItem = null;
@@ -1386,24 +1388,29 @@
       buttons.forEach((button) => {
         button.addEventListener("click", () => {
           if (button === brandButton && activeTab === "project-detail") {
-            exitProjectDetail(false);
+            exitProjectDetail(false, true);
             return;
           }
 
-          if (activeTab === "project-detail" && button !== brandButton) {
-            exitProjectDetail(false);
-          }
-          activeTab = button.dataset.tab;
-          buttons.forEach((item) => item.classList.toggle("active", item === button));
-          panels.forEach((panel) => panel.classList.toggle("active", panel.id === activeTab));
-          updateEditTrigger(activeTab);
-          resetPanelScroll(activeTab);
-          syncChromeForActiveTab();
+          activateTab(button.dataset.tab, { resetScroll: true, updateHash: true });
         });
       });
 
       function updateEditTrigger(tab) {
         editTrigger.classList.toggle("visible", tab === "publications" || tab === "projects");
+      }
+
+      function updateHash(hashValue) {
+        const nextHash = hashValue.startsWith("#") ? hashValue : `#${hashValue}`;
+        if (window.location.hash === nextHash) {
+          return;
+        }
+
+        suppressHashRoute = true;
+        window.location.hash = nextHash;
+        requestAnimationFrame(() => {
+          suppressHashRoute = false;
+        });
       }
 
       function syncChromeForActiveTab() {
@@ -1465,7 +1472,27 @@
         });
       }
 
-      function enterProjectDetail(projectId) {
+      function activateTab(tab, { resetScroll = true, updateHash: shouldUpdateHash = false } = {}) {
+        if (activeTab === "project-detail" && tab !== "project-detail") {
+          projectDetailState = null;
+          previousTabBeforeDetail = null;
+        }
+
+        activeTab = tab;
+        buttons.forEach((item) => item.classList.toggle("active", item.dataset.tab === tab && item !== brandButton));
+        panels.forEach((panel) => panel.classList.toggle("active", panel.id === activeTab));
+        updateEditTrigger(activeTab);
+        if (resetScroll) {
+          resetPanelScroll(activeTab);
+        }
+        syncChromeForActiveTab();
+
+        if (shouldUpdateHash) {
+          updateHash(tab);
+        }
+      }
+
+      function enterProjectDetail(projectId, { updateHash: shouldUpdateHash = false } = {}) {
         previousTabBeforeDetail = activeTab;
         projectDetailState = {
           projectId,
@@ -1478,9 +1505,12 @@
         updateEditTrigger(activeTab);
         renderProjectDetail();
         syncChromeForActiveTab();
+        if (shouldUpdateHash) {
+          updateHash(`project/${projectId}`);
+        }
       }
 
-      function exitProjectDetail(resetToTop = false) {
+      function exitProjectDetail(resetToTop = false, updateHashOnExit = false) {
         if (!projectDetailState) {
           return;
         }
@@ -1499,6 +1529,40 @@
 
         projectDetailState = null;
         previousTabBeforeDetail = null;
+
+        if (updateHashOnExit) {
+          updateHash(targetTab);
+        }
+      }
+
+      function routeFromHash() {
+        const hash = window.location.hash.replace(/^#/, "");
+        if (!hash || hash === "home") {
+          activateTab("home", { resetScroll: false, updateHash: false });
+          return;
+        }
+
+        if (hash.startsWith("project/")) {
+          const projectId = decodeURIComponent(hash.slice("project/".length));
+          previousTabBeforeDetail = "projects";
+          projectDetailState = {
+            projectId,
+            fromTab: "projects",
+            scrollSnapshot: null,
+            selectedImage: null,
+          };
+          activeTab = "project-detail";
+          panels.forEach((panel) => panel.classList.toggle("active", panel.id === activeTab));
+          updateEditTrigger(activeTab);
+          renderProjectDetail();
+          syncChromeForActiveTab();
+          return;
+        }
+
+        const knownTabs = new Set(["about", "publications", "projects", "contact"]);
+        if (knownTabs.has(hash)) {
+          activateTab(hash, { resetScroll: false, updateHash: false });
+        }
       }
 
       function escapeHtml(value) {
@@ -2013,7 +2077,7 @@
         const link = event.target.closest(".project-link");
         if (link) {
           event.preventDefault();
-          enterProjectDetail(link.dataset.projectId);
+          enterProjectDetail(link.dataset.projectId, { updateHash: true });
         }
       });
 
@@ -2025,6 +2089,14 @@
 
         projectDetailState.selectedImage = button.dataset.detailImage;
         renderProjectDetail();
+      });
+
+      window.addEventListener("hashchange", () => {
+        if (suppressHashRoute) {
+          return;
+        }
+
+        routeFromHash();
       });
 
       passwordCancel.addEventListener("click", () => closeModal(passwordModal));
@@ -2400,12 +2472,16 @@
         renderProjectsEditor();
       });
 
-      Promise.all([loadPublications(), loadAbout(), loadProjects()]).catch((error) => {
-        const message = `<p class="publication-authors">${escapeHtml(error.message)}</p>`;
-        publicationsRender.innerHTML = message;
-        aboutRender.innerHTML = message;
-        projectsRender.innerHTML = message;
-      });
+      Promise.all([loadPublications(), loadAbout(), loadProjects()])
+        .then(() => {
+          routeFromHash();
+        })
+        .catch((error) => {
+          const message = `<p class="publication-authors">${escapeHtml(error.message)}</p>`;
+          publicationsRender.innerHTML = message;
+          aboutRender.innerHTML = message;
+          projectsRender.innerHTML = message;
+        });
     </script>
   </body>
 </html>

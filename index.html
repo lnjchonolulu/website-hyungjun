@@ -84,6 +84,12 @@
         color: var(--text);
       }
 
+      .brand-back {
+        font-size: clamp(2.2rem, 4vw, 3.4rem);
+        line-height: 0.9;
+        letter-spacing: -0.04em;
+      }
+
       .nav {
         display: grid;
         grid-template-columns: repeat(4, max-content);
@@ -91,6 +97,11 @@
         gap: clamp(18px, 2vw, 28px);
         padding-top: 2px;
         grid-column: 7 / -1;
+      }
+
+      .page.detail-mode .nav {
+        visibility: hidden;
+        pointer-events: none;
       }
 
       .nav-btn {
@@ -701,6 +712,80 @@
         margin-top: 6px;
       }
 
+      .project-detail-panel {
+        margin-top: calc(-1 * var(--topbar-height));
+        padding-top: calc(var(--topbar-height) + 34px);
+        height: calc(100vh - var(--page-pad-top) - 20px);
+        overflow: hidden;
+      }
+
+      .project-detail-grid {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 18px;
+        height: 100%;
+        min-height: 0;
+        grid-template-rows: auto auto minmax(0, 1fr);
+      }
+
+      .project-detail-title {
+        grid-column: 1 / span 6;
+        margin: 0;
+        font-size: clamp(3rem, 7vw, 5rem);
+        line-height: 0.9;
+        letter-spacing: -0.06em;
+        font-weight: 500;
+      }
+
+      .project-detail-description {
+        grid-column: 1 / span 4;
+        margin: 0;
+        max-width: 30ch;
+        font-size: 1rem;
+        line-height: 1.4;
+        color: var(--muted);
+      }
+
+      .project-detail-main {
+        grid-column: 7 / -1;
+        grid-row: 1 / span 2;
+        align-self: start;
+      }
+
+      .project-detail-main img {
+        display: block;
+        width: 100%;
+        max-height: 62vh;
+        object-fit: contain;
+        object-position: left top;
+      }
+
+      .project-detail-strip {
+        grid-column: 1 / -1;
+        grid-row: 3;
+        display: flex;
+        gap: 18px;
+        align-items: end;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 6px;
+        scrollbar-gutter: stable;
+      }
+
+      .project-detail-thumb {
+        flex: 0 0 calc((100% - 5 * 18px) / 6);
+        border: 0;
+        padding: 0;
+        background: transparent;
+        cursor: pointer;
+      }
+
+      .project-detail-thumb img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
       .contact-panel {
         margin-top: calc(-1 * var(--topbar-height));
         padding-top: calc(var(--topbar-height) + 34px);
@@ -963,6 +1048,19 @@
           grid-template-rows: auto;
         }
 
+        .project-detail-grid {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto;
+        }
+
+        .project-detail-title,
+        .project-detail-description,
+        .project-detail-main,
+        .project-detail-strip {
+          grid-column: 1;
+          grid-row: auto;
+        }
+
         .about-top-left,
         .about-top-right,
         .about-bottom-left,
@@ -1025,7 +1123,8 @@
 
         .publication-panel,
         .project-panel,
-        .about-panel {
+        .about-panel,
+        .project-detail-panel {
           height: auto;
           overflow: visible;
           margin-top: 0;
@@ -1148,6 +1247,10 @@
         <div id="projects-render"></div>
       </section>
 
+      <section id="project-detail" class="panel project-detail-panel">
+        <div id="project-detail-render"></div>
+      </section>
+
       <section id="contact" class="panel contact-panel">
         <h2 class="contact-title">Contact</h2>
         <p class="contact-copy">
@@ -1238,6 +1341,8 @@
       let aboutContent = null;
       let projects = [];
       let activeTab = "home";
+      let previousTabBeforeDetail = null;
+      let projectDetailState = null;
       let draggedItem = null;
       let aboutEditorSection = null;
       let aboutDraggedItem = null;
@@ -1246,6 +1351,7 @@
       const publicationsRender = document.querySelector("#publications-render");
       const aboutRender = document.querySelector("#about-render");
       const projectsRender = document.querySelector("#projects-render");
+      const projectDetailRender = document.querySelector("#project-detail-render");
       const editTrigger = document.querySelector("#edit-trigger");
       const passwordModal = document.querySelector("#password-modal");
       const editorModal = document.querySelector("#editor-modal");
@@ -1271,21 +1377,47 @@
       const addProjectButton = document.querySelector("#add-project");
       const saveProjectsButton = document.querySelector("#save-projects");
       const closeProjectsEditorButton = document.querySelector("#close-projects-editor");
+      const pageRoot = document.querySelector(".page");
+      const brandButton = document.querySelector(".brand-btn");
 
       updateEditTrigger(activeTab);
+      syncChromeForActiveTab();
 
       buttons.forEach((button) => {
         button.addEventListener("click", () => {
+          if (button === brandButton && activeTab === "project-detail") {
+            exitProjectDetail(false);
+            return;
+          }
+
+          if (activeTab === "project-detail" && button !== brandButton) {
+            exitProjectDetail(false);
+          }
           activeTab = button.dataset.tab;
           buttons.forEach((item) => item.classList.toggle("active", item === button));
           panels.forEach((panel) => panel.classList.toggle("active", panel.id === activeTab));
           updateEditTrigger(activeTab);
           resetPanelScroll(activeTab);
+          syncChromeForActiveTab();
         });
       });
 
       function updateEditTrigger(tab) {
         editTrigger.classList.toggle("visible", tab === "publications" || tab === "projects");
+      }
+
+      function syncChromeForActiveTab() {
+        const inDetail = activeTab === "project-detail";
+        pageRoot.classList.toggle("detail-mode", inDetail);
+        brandButton.textContent = inDetail ? "←" : "Hyungjun Cho";
+        brandButton.classList.toggle("brand-back", inDetail);
+        brandButton.dataset.tab = inDetail ? "project-detail-back" : "home";
+        buttons.forEach((item) => {
+          if (item !== brandButton) {
+            item.classList.toggle("active", !inDetail && item.dataset.tab === activeTab);
+          }
+        });
+        brandButton.classList.toggle("active", inDetail ? false : activeTab === "home");
       }
 
       function resetPanelScroll(tab) {
@@ -1301,6 +1433,72 @@
         panel.querySelectorAll(".scroll-soft").forEach((node) => {
           node.scrollTop = 0;
         });
+      }
+
+      function capturePanelScroll(tab) {
+        const panel = document.getElementById(tab);
+        if (!panel) {
+          return null;
+        }
+
+        return {
+          panelScrollTop: panel.scrollTop,
+          nested: Array.from(panel.querySelectorAll(".scroll-soft")).map((node, index) => ({
+            index,
+            scrollTop: node.scrollTop,
+          })),
+        };
+      }
+
+      function restorePanelScroll(tab, snapshot) {
+        const panel = document.getElementById(tab);
+        if (!panel || !snapshot) {
+          return;
+        }
+
+        panel.scrollTop = snapshot.panelScrollTop || 0;
+        const nestedNodes = panel.querySelectorAll(".scroll-soft");
+        snapshot.nested.forEach((entry) => {
+          if (nestedNodes[entry.index]) {
+            nestedNodes[entry.index].scrollTop = entry.scrollTop;
+          }
+        });
+      }
+
+      function enterProjectDetail(projectId) {
+        previousTabBeforeDetail = activeTab;
+        projectDetailState = {
+          projectId,
+          fromTab: activeTab,
+          scrollSnapshot: capturePanelScroll(activeTab),
+          selectedImage: null,
+        };
+        activeTab = "project-detail";
+        panels.forEach((panel) => panel.classList.toggle("active", panel.id === activeTab));
+        updateEditTrigger(activeTab);
+        renderProjectDetail();
+        syncChromeForActiveTab();
+      }
+
+      function exitProjectDetail(resetToTop = false) {
+        if (!projectDetailState) {
+          return;
+        }
+
+        const targetTab = previousTabBeforeDetail || "projects";
+        activeTab = targetTab;
+        panels.forEach((panel) => panel.classList.toggle("active", panel.id === activeTab));
+        updateEditTrigger(activeTab);
+        syncChromeForActiveTab();
+
+        if (resetToTop) {
+          resetPanelScroll(activeTab);
+        } else {
+          restorePanelScroll(activeTab, projectDetailState.scrollSnapshot);
+        }
+
+        projectDetailState = null;
+        previousTabBeforeDetail = null;
       }
 
       function escapeHtml(value) {
@@ -1476,7 +1674,7 @@
                       <p class="project-summary">${escapeHtml(project.summary)}</p>
                     </div>
                     <div class="project-media">
-                      <a class="project-link" href="#" aria-label="${escapeHtml(project.title)}">
+                      <a class="project-link" href="#" data-project-id="${escapeHtml(project.id)}" aria-label="${escapeHtml(project.title)}">
                         <img class="project-image" src="${escapeHtml(project.heroImage || "./hero.jpg")}" alt="${escapeHtml(project.title)}" />
                       </a>
                     </div>
@@ -1484,6 +1682,44 @@
                 `
               )
               .join("")}
+          </div>
+        `;
+      }
+
+      function renderProjectDetail() {
+        if (!projectDetailState) {
+          return;
+        }
+
+        const project = projects.find((item) => item.id === projectDetailState.projectId);
+        if (!project) {
+          projectDetailRender.innerHTML = "";
+          return;
+        }
+
+        const gallery = [project.heroImage, ...project.galleryImages].filter(Boolean);
+        if (!projectDetailState.selectedImage) {
+          projectDetailState.selectedImage = project.heroImage || gallery[0] || "";
+        }
+
+        projectDetailRender.innerHTML = `
+          <div class="project-detail-grid">
+            <h2 class="project-detail-title">${escapeHtml(project.title)}</h2>
+            <p class="project-detail-description">${escapeHtml(project.description || project.summary)}</p>
+            <div class="project-detail-main">
+              <img src="${escapeHtml(projectDetailState.selectedImage)}" alt="${escapeHtml(project.title)}" />
+            </div>
+            <div class="project-detail-strip scroll-soft">
+              ${gallery
+                .map(
+                  (image, index) => `
+                    <button class="project-detail-thumb" type="button" data-detail-image="${escapeHtml(image)}" aria-label="View image ${index + 1}">
+                      <img src="${escapeHtml(image)}" alt="${escapeHtml(project.title)} detail ${index + 1}" />
+                    </button>
+                  `
+                )
+                .join("")}
+            </div>
           </div>
         `;
       }
@@ -1777,7 +2013,18 @@
         const link = event.target.closest(".project-link");
         if (link) {
           event.preventDefault();
+          enterProjectDetail(link.dataset.projectId);
         }
+      });
+
+      projectDetailRender.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-detail-image]");
+        if (!button || !projectDetailState) {
+          return;
+        }
+
+        projectDetailState.selectedImage = button.dataset.detailImage;
+        renderProjectDetail();
       });
 
       passwordCancel.addEventListener("click", () => closeModal(passwordModal));

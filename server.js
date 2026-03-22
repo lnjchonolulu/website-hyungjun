@@ -777,11 +777,6 @@ async function ensureSchema() {
   await pool.query("CREATE INDEX IF NOT EXISTS publications_site_year_sort_idx ON publications (site_slug, year_sort_order, item_sort_order)");
   await purgePrunedPublications();
 
-  const { rows } = await pool.query("SELECT COUNT(*)::int AS count FROM publications WHERE site_slug = $1", [SITE_SLUG]);
-  if (rows[0].count === 0) {
-    await replacePublications(defaultPublications);
-  }
-
   const publicationSelectionRows = await pool.query("SELECT COUNT(*)::int AS count FROM site_content WHERE key = $1", [
     getScopedContentKey("publication-ids"),
   ]);

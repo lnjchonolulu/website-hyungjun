@@ -23,53 +23,14 @@ const PRIMARY_SITE_SLUG = "hyungjuncho";
 const COOKIE_NAME = `${SITE_SLUG}_admin_session`;
 const SESSION_MAX_AGE_MS = 1000 * 60 * 60 * 12;
 
-const defaultPublications = [
-  {
-    year: "2025",
-    items: [
-      {
-        title: "Explainable Policy Learning for Clinical Triage",
-        authors: "Hyungjun Cho, Coauthors",
-        venue: "NeurIPS 2025",
-        award: "",
-      },
-    ],
-  },
-  {
-    year: "2024",
-    items: [
-      {
-        title: "Human-AI Alignment in Real-Time Decision Support",
-        authors: "Hyungjun Cho, Jiyeon Amy Seo, Woosuk Seo",
-        venue: "CHI 2024",
-        award: "Best Paper Honorable Mention Award (Top 5% of submissions)",
-      },
-      {
-        title: "Designing Interfaces for Trust Calibration in AI Systems",
-        authors: "Hyungjun Cho, Collaborators",
-        venue: "DIS 2024",
-        award: "",
-      },
-    ],
-  },
-  {
-    year: "2023",
-    items: [
-      {
-        title: "A Benchmark for Reasoning Transparency",
-        authors: "Hyungjun Cho, Coauthors",
-        venue: "ACL Findings 2023",
-        award: "",
-      },
-      {
-        title: "Human-Centered Evaluation of Generative Research Tools",
-        authors: "Hyungjun Cho, Collaborators",
-        venue: "UIST Adjunct 2023",
-        award: "",
-      },
-    ],
-  },
-];
+const defaultPublications = [];
+const PRUNED_PUBLICATION_TITLES = new Set([
+  "Human-AI Alignment in Real-Time Decision Support",
+  "Designing Interfaces for Trust Calibration in AI Systems",
+  "Explainable Policy Learning for Clinical Triage",
+  "A Benchmark for Reasoning Transparency",
+  "Human-Centered Evaluation of Generative Research Tools",
+]);
 
 const defaultAbout = {
   education: [
@@ -614,6 +575,49 @@ async function replacePublications(publications) {
   );
 }
 
+async function purgePrunedPublications() {
+  const { rows } = await pool.query(
+    `
+      SELECT id
+      FROM publications_master
+      WHERE title = ANY($1::text[])
+    `,
+    [[...PRUNED_PUBLICATION_TITLES]]
+  );
+
+  if (rows.length === 0) {
+    await pool.query("DELETE FROM publications WHERE title = ANY($1::text[])", [[...PRUNED_PUBLICATION_TITLES]]);
+    return;
+  }
+
+  const idsToRemove = rows.map((row) => row.id);
+  await pool.query("DELETE FROM publications_master WHERE id = ANY($1::text[])", [idsToRemove]);
+  await pool.query("DELETE FROM publications WHERE title = ANY($1::text[])", [[...PRUNED_PUBLICATION_TITLES]]);
+
+  const selectionRows = await pool.query(
+    `
+      SELECT key, value
+      FROM site_content
+      WHERE key LIKE '%:publication-ids'
+    `
+  );
+
+  for (const row of selectionRows.rows) {
+    const currentIds = Array.isArray(row.value) ? row.value : [];
+    const nextIds = currentIds.filter((id) => !idsToRemove.includes(id));
+    if (nextIds.length !== currentIds.length) {
+      await pool.query(
+        `
+          UPDATE site_content
+          SET value = $2::jsonb, updated_at = NOW()
+          WHERE key = $1
+        `,
+        [row.key, JSON.stringify(nextIds)]
+      );
+    }
+  }
+}
+
 function normalizeProject(project) {
   return {
     id: project.id || generateContentId("project"),
@@ -771,6 +775,7 @@ async function ensureSchema() {
   await pool.query("ALTER TABLE publications ADD COLUMN IF NOT EXISTS site_slug TEXT");
   await pool.query("UPDATE publications SET site_slug = $1 WHERE site_slug IS NULL OR site_slug = ''", [PRIMARY_SITE_SLUG]);
   await pool.query("CREATE INDEX IF NOT EXISTS publications_site_year_sort_idx ON publications (site_slug, year_sort_order, item_sort_order)");
+  await purgePrunedPublications();
 
   const { rows } = await pool.query("SELECT COUNT(*)::int AS count FROM publications WHERE site_slug = $1", [SITE_SLUG]);
   if (rows[0].count === 0) {

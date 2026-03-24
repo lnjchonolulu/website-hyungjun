@@ -1444,10 +1444,8 @@
       let previousTabBeforeDetail = null;
       let projectDetailState = null;
       let suppressHashRoute = false;
-      let draggedItem = null;
       let aboutEditorSection = null;
       let aboutDraggedItem = null;
-      let projectDraggedIndex = null;
 
       const publicationsRender = document.querySelector("#publications-render");
       const aboutRender = document.querySelector("#about-render");
@@ -1908,7 +1906,7 @@
             const items = group.items
               .map(
                 (item, itemIndex) => `
-                  <div class="editor-entry" draggable="true" data-group-index="${groupIndex}" data-item-index="${itemIndex}">
+                  <div class="editor-entry" data-group-index="${groupIndex}" data-item-index="${itemIndex}">
                     <div class="editor-grid">
                       <input class="text-input full" data-field="title" value="${escapeHtml(item.title)}" placeholder="Title" />
                       <input class="text-input full" data-field="authors" value="${escapeHtml(item.authors)}" placeholder="Authors" />
@@ -1916,6 +1914,8 @@
                       <input class="text-input" data-field="award" value="${escapeHtml(item.award || "")}" placeholder="Award (optional)" />
                     </div>
                     <div class="modal-actions">
+                      <button class="action-btn ghost" type="button" data-move-item-up="${groupIndex}:${itemIndex}">Move Up</button>
+                      <button class="action-btn ghost" type="button" data-move-item-down="${groupIndex}:${itemIndex}">Move Down</button>
                       <button class="action-btn ghost editor-danger" type="button" data-remove-item="${groupIndex}:${itemIndex}">Delete Paper</button>
                     </div>
                   </div>
@@ -2026,13 +2026,17 @@
           .map(
             (project, index) => `
               <section class="editor-year">
-                <div class="editor-entry" draggable="true" data-project-index="${index}">
+                <div class="editor-entry" data-project-index="${index}">
                   <div class="editor-year-head">
                     <div>
                       <h3 class="editor-year-title">Project ${index + 1}</h3>
                       <div class="editor-year-badge">${escapeHtml(project.title || "Untitled")}</div>
                     </div>
-                    <button class="action-btn ghost editor-danger" type="button" data-remove-project="${index}">Delete</button>
+                    <div class="modal-actions">
+                      <button class="action-btn ghost" type="button" data-move-project-up="${index}">Move Up</button>
+                      <button class="action-btn ghost" type="button" data-move-project-down="${index}">Move Down</button>
+                      <button class="action-btn ghost editor-danger" type="button" data-remove-project="${index}">Delete</button>
+                    </div>
                   </div>
                   <div class="editor-grid">
                     <input class="text-input full" data-project-field="title" data-index="${index}" value="${escapeHtml(project.title)}" placeholder="Project name" />
@@ -2385,6 +2389,26 @@
           return;
         }
 
+        if (button.dataset.moveItemUp) {
+          const [groupIndex, itemIndex] = button.dataset.moveItemUp.split(":").map(Number);
+          const items = publications[groupIndex].items;
+          if (itemIndex > 0) {
+            [items[itemIndex - 1], items[itemIndex]] = [items[itemIndex], items[itemIndex - 1]];
+            renderEditor();
+          }
+          return;
+        }
+
+        if (button.dataset.moveItemDown) {
+          const [groupIndex, itemIndex] = button.dataset.moveItemDown.split(":").map(Number);
+          const items = publications[groupIndex].items;
+          if (itemIndex < items.length - 1) {
+            [items[itemIndex + 1], items[itemIndex]] = [items[itemIndex], items[itemIndex + 1]];
+            renderEditor();
+          }
+          return;
+        }
+
         if (button.dataset.removeYear !== undefined) {
           const groupIndex = Number(button.dataset.removeYear);
           publications.splice(groupIndex, 1);
@@ -2415,61 +2439,6 @@
 
           renderEditor();
         }
-      });
-
-      editorRoot.addEventListener("dragstart", (event) => {
-        const entry = event.target.closest(".editor-entry");
-        if (!entry) {
-          return;
-        }
-
-        draggedItem = {
-          groupIndex: Number(entry.dataset.groupIndex),
-          itemIndex: Number(entry.dataset.itemIndex),
-        };
-        entry.classList.add("dragging");
-      });
-
-      editorRoot.addEventListener("dragend", () => {
-        draggedItem = null;
-        editorRoot.querySelectorAll(".editor-entry").forEach((entry) => {
-          entry.classList.remove("dragging", "drop-target");
-        });
-      });
-
-      editorRoot.addEventListener("dragover", (event) => {
-        const entry = event.target.closest(".editor-entry");
-        if (!entry || !draggedItem) {
-          return;
-        }
-
-        const groupIndex = Number(entry.dataset.groupIndex);
-        if (groupIndex !== draggedItem.groupIndex) {
-          return;
-        }
-
-        event.preventDefault();
-        editorRoot.querySelectorAll(".editor-entry").forEach((item) => item.classList.remove("drop-target"));
-        entry.classList.add("drop-target");
-      });
-
-      editorRoot.addEventListener("drop", (event) => {
-        const entry = event.target.closest(".editor-entry");
-        if (!entry || !draggedItem) {
-          return;
-        }
-
-        const groupIndex = Number(entry.dataset.groupIndex);
-        const itemIndex = Number(entry.dataset.itemIndex);
-        if (groupIndex !== draggedItem.groupIndex) {
-          return;
-        }
-
-        event.preventDefault();
-        const items = publications[groupIndex].items;
-        const [moved] = items.splice(draggedItem.itemIndex, 1);
-        items.splice(itemIndex, 0, moved);
-        renderEditor();
       });
 
       aboutEditorRoot.addEventListener("input", (event) => {
@@ -2579,6 +2548,24 @@
           return;
         }
 
+        if (button.dataset.moveProjectUp !== undefined) {
+          const projectIndex = Number(button.dataset.moveProjectUp);
+          if (projectIndex > 0) {
+            [projects[projectIndex - 1], projects[projectIndex]] = [projects[projectIndex], projects[projectIndex - 1]];
+            renderProjectsEditor();
+          }
+          return;
+        }
+
+        if (button.dataset.moveProjectDown !== undefined) {
+          const projectIndex = Number(button.dataset.moveProjectDown);
+          if (projectIndex < projects.length - 1) {
+            [projects[projectIndex + 1], projects[projectIndex]] = [projects[projectIndex], projects[projectIndex + 1]];
+            renderProjectsEditor();
+          }
+          return;
+        }
+
         if (button.dataset.removeProject !== undefined) {
           const projectIndex = Number(button.dataset.removeProject);
           const project = projects[projectIndex];
@@ -2667,49 +2654,6 @@
 
         input.value = "";
         projectsEditorStatus.textContent = "";
-        renderProjectsEditor();
-      });
-
-      projectsEditorRoot.addEventListener("dragstart", (event) => {
-        const entry = event.target.closest("[data-project-index]");
-        if (!entry) {
-          return;
-        }
-
-        projectDraggedIndex = Number(entry.dataset.projectIndex);
-        entry.classList.add("dragging");
-      });
-
-      projectsEditorRoot.addEventListener("dragend", () => {
-        projectDraggedIndex = null;
-        projectsEditorRoot.querySelectorAll("[data-project-index]").forEach((entry) => {
-          entry.classList.remove("dragging", "drop-target");
-        });
-      });
-
-      projectsEditorRoot.addEventListener("dragover", (event) => {
-        const entry = event.target.closest("[data-project-index]");
-        if (!entry || projectDraggedIndex === null) {
-          return;
-        }
-
-        event.preventDefault();
-        projectsEditorRoot.querySelectorAll("[data-project-index]").forEach((item) => {
-          item.classList.remove("drop-target");
-        });
-        entry.classList.add("drop-target");
-      });
-
-      projectsEditorRoot.addEventListener("drop", (event) => {
-        const entry = event.target.closest("[data-project-index]");
-        if (!entry || projectDraggedIndex === null) {
-          return;
-        }
-
-        event.preventDefault();
-        const toIndex = Number(entry.dataset.projectIndex);
-        const [moved] = projects.splice(projectDraggedIndex, 1);
-        projects.splice(toIndex, 0, moved);
         renderProjectsEditor();
       });
 

@@ -771,6 +771,20 @@
         margin-top: 4px;
       }
 
+      .project-detail-output {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .project-detail-output + .project-detail-output {
+        margin-top: 10px;
+      }
+
+      .project-detail-output-label {
+        font-weight: 600;
+      }
+
       .project-detail-main {
         grid-column: 7 / span 4;
         grid-row: 1 / span 2;
@@ -1877,11 +1891,7 @@
         if (!projectDetailState.selectedImage) {
           projectDetailState.selectedImage = project.heroImage || gallery[0] || "";
         }
-        const projectLinks = [
-          { label: "DOI", href: project.doiUrl || "" },
-          { label: "PDF", href: project.pdfUrl || "" },
-          { label: "VIDEO", href: project.videoUrl || "" },
-        ].filter((link) => link.href);
+        const projectOutputs = Array.isArray(project.outputs) ? project.outputs.filter((output) => output.label) : [];
         const shouldAutoScroll = gallery.length > 4;
         const stripImages = shouldAutoScroll ? [...gallery, ...gallery] : gallery;
         const stripWrapClass = shouldAutoScroll ? "project-detail-strip-wrap" : "project-detail-strip-wrap static";
@@ -1896,24 +1906,73 @@
               <h2 class="project-detail-title">${escapeHtml(project.title)}</h2>
               <p class="project-detail-description">${escapeHtml(project.description || project.summary)}</p>
               ${
-                projectLinks.length
+                projectOutputs.length
                   ? `<div class="section-kicker about-links project-detail-links">
-                      ${projectLinks
+                      ${projectOutputs
                         .map(
-                          (link) => `
-                            <a
-                              class="about-link"
-                              href="${escapeHtml(link.href)}"
-                              aria-label="${escapeHtml(link.label)}"
-                              target="_blank"
-                              rel="noreferrer noopener"
-                            >
-                              <span class="about-link-label">${escapeHtml(link.label)}</span>
-                              <svg class="about-link-arrow" viewBox="0 0 16 16" aria-hidden="true">
-                                <path d="M3 13L13 3"></path>
-                                <path d="M8.5 3H13V7.5"></path>
-                              </svg>
-                            </a>
+                          (output) => `
+                            <div class="project-detail-output">
+                              <strong class="project-detail-output-label">${escapeHtml(output.label)}</strong>
+                              <div class="about-links">
+                                ${
+                                  output.doiUrl
+                                    ? `
+                                    <a
+                                      class="about-link"
+                                      href="${escapeHtml(output.doiUrl)}"
+                                      aria-label="DOI"
+                                      target="_blank"
+                                      rel="noreferrer noopener"
+                                    >
+                                      <span class="about-link-label">DOI</span>
+                                      <svg class="about-link-arrow" viewBox="0 0 16 16" aria-hidden="true">
+                                        <path d="M3 13L13 3"></path>
+                                        <path d="M8.5 3H13V7.5"></path>
+                                      </svg>
+                                    </a>
+                                  `
+                                    : ""
+                                }
+                                ${
+                                  output.pdfUrl
+                                    ? `
+                                    <a
+                                      class="about-link"
+                                      href="${escapeHtml(output.pdfUrl)}"
+                                      aria-label="PDF"
+                                      target="_blank"
+                                      rel="noreferrer noopener"
+                                    >
+                                      <span class="about-link-label">PDF</span>
+                                      <svg class="about-link-arrow" viewBox="0 0 16 16" aria-hidden="true">
+                                        <path d="M3 13L13 3"></path>
+                                        <path d="M8.5 3H13V7.5"></path>
+                                      </svg>
+                                    </a>
+                                  `
+                                    : ""
+                                }
+                                ${
+                                  output.videoUrl
+                                    ? `
+                                    <a
+                                      class="about-link"
+                                      href="${escapeHtml(output.videoUrl)}"
+                                      aria-label="VIDEO"
+                                      target="_blank"
+                                      rel="noreferrer noopener"
+                                    >
+                                      <span class="about-link-label">VIDEO</span>
+                                      <svg class="about-link-arrow" viewBox="0 0 16 16" aria-hidden="true">
+                                        <path d="M3 13L13 3"></path>
+                                        <path d="M8.5 3H13V7.5"></path>
+                                      </svg>
+                                    </a>
+                                  `
+                                    : ""
+                                }
+                              </div>
+                            </div>
                           `
                         )
                         .join("")}
@@ -2089,10 +2148,32 @@
                     <input class="text-input full" data-project-field="venue" data-index="${index}" value="${escapeHtml(project.venue)}" placeholder="Venue" />
                     <input class="text-input full" data-project-field="summary" data-index="${index}" value="${escapeHtml(project.summary)}" placeholder="Short summary" />
                     <textarea class="text-area full" data-project-field="description" data-index="${index}" placeholder="Detailed description">${escapeHtml(project.description)}</textarea>
-                    <input class="text-input full" data-project-field="doiUrl" data-index="${index}" value="${escapeHtml(project.doiUrl || "")}" placeholder="DOI URL (optional)" />
-                    <input class="text-input full" data-project-field="pdfUrl" data-index="${index}" value="${escapeHtml(project.pdfUrl || "")}" placeholder="PDF URL (optional)" />
-                    <input class="text-input full" data-project-field="videoUrl" data-index="${index}" value="${escapeHtml(project.videoUrl || "")}" placeholder="VIDEO URL (optional)" />
                   </div>
+                  <div class="editor-year-head">
+                    <div>
+                      <h4 class="editor-year-title">Outputs</h4>
+                    </div>
+                    <button class="action-btn" type="button" data-add-project-output="${index}">Add Output</button>
+                  </div>
+                  ${(project.outputs || [])
+                    .map(
+                      (output, outputIndex) => `
+                        <div class="editor-entry">
+                          <div class="editor-grid">
+                            <input class="text-input full" data-project-output-field="label" data-index="${index}" data-output-index="${outputIndex}" value="${escapeHtml(output.label || "")}" placeholder="Label (e.g. Paper 1)" />
+                            <input class="text-input full" data-project-output-field="doiUrl" data-index="${index}" data-output-index="${outputIndex}" value="${escapeHtml(output.doiUrl || "")}" placeholder="DOI URL (optional)" />
+                            <input class="text-input full" data-project-output-field="pdfUrl" data-index="${index}" data-output-index="${outputIndex}" value="${escapeHtml(output.pdfUrl || "")}" placeholder="PDF URL (optional)" />
+                            <input class="text-input full" data-project-output-field="videoUrl" data-index="${index}" data-output-index="${outputIndex}" value="${escapeHtml(output.videoUrl || "")}" placeholder="VIDEO URL (optional)" />
+                          </div>
+                          <div class="modal-actions">
+                            <button class="action-btn ghost" type="button" data-move-project-output-up="${index}:${outputIndex}">Move Up</button>
+                            <button class="action-btn ghost" type="button" data-move-project-output-down="${index}:${outputIndex}">Move Down</button>
+                            <button class="action-btn ghost editor-danger" type="button" data-remove-project-output="${index}:${outputIndex}">Delete</button>
+                          </div>
+                        </div>
+                      `
+                    )
+                    .join("")}
                   <div class="modal-actions">
                     <label class="action-btn" for="hero-upload-${index}">Upload Cover</label>
                     <input id="hero-upload-${index}" type="file" accept="image/*" data-project-upload="hero" data-index="${index}" hidden />
@@ -2390,9 +2471,7 @@
           venue: "",
           summary: "",
           description: "",
-          doiUrl: "",
-          pdfUrl: "",
-          videoUrl: "",
+          outputs: [],
           heroImage: "",
           galleryImages: [],
         });
@@ -2592,6 +2671,19 @@
         }
 
         projects[index][field] = target.value;
+        return;
+      });
+
+      projectsEditorRoot.addEventListener("input", (event) => {
+        const target = event.target;
+        const field = target.dataset.projectOutputField;
+        const index = Number(target.dataset.index);
+        const outputIndex = Number(target.dataset.outputIndex);
+        if (!field || Number.isNaN(index) || Number.isNaN(outputIndex)) {
+          return;
+        }
+
+        projects[index].outputs[outputIndex][field] = target.value;
       });
 
       projectsEditorRoot.addEventListener("click", async (event) => {
@@ -2635,6 +2727,49 @@
           return;
         }
 
+        if (button.dataset.addProjectOutput !== undefined) {
+          const projectIndex = Number(button.dataset.addProjectOutput);
+          const nextNumber = (projects[projectIndex].outputs?.length || 0) + 1;
+          if (!Array.isArray(projects[projectIndex].outputs)) {
+            projects[projectIndex].outputs = [];
+          }
+          projects[projectIndex].outputs.push({
+            label: `Paper ${nextNumber}`,
+            doiUrl: "",
+            pdfUrl: "",
+            videoUrl: "",
+          });
+          renderProjectsEditor();
+          return;
+        }
+
+        if (button.dataset.removeProjectOutput !== undefined) {
+          const [projectIndex, outputIndex] = button.dataset.removeProjectOutput.split(":").map(Number);
+          projects[projectIndex].outputs.splice(outputIndex, 1);
+          renderProjectsEditor();
+          return;
+        }
+
+        if (button.dataset.moveProjectOutputUp !== undefined) {
+          const [projectIndex, outputIndex] = button.dataset.moveProjectOutputUp.split(":").map(Number);
+          const outputs = projects[projectIndex].outputs;
+          if (outputIndex > 0) {
+            [outputs[outputIndex - 1], outputs[outputIndex]] = [outputs[outputIndex], outputs[outputIndex - 1]];
+            renderProjectsEditor();
+          }
+          return;
+        }
+
+        if (button.dataset.moveProjectOutputDown !== undefined) {
+          const [projectIndex, outputIndex] = button.dataset.moveProjectOutputDown.split(":").map(Number);
+          const outputs = projects[projectIndex].outputs;
+          if (outputIndex < outputs.length - 1) {
+            [outputs[outputIndex + 1], outputs[outputIndex]] = [outputs[outputIndex], outputs[outputIndex + 1]];
+            renderProjectsEditor();
+          }
+          return;
+        }
+
         if (button.dataset.removeProjectImage !== undefined) {
           const [projectIndexRaw, imageIndexRaw] = button.dataset.removeProjectImage.split(":");
           const project = projects[Number(projectIndexRaw)];
@@ -2671,9 +2806,7 @@
             venue: libraryProject.venue,
             summary: libraryProject.summary,
             description: libraryProject.description,
-            doiUrl: libraryProject.doiUrl || "",
-            pdfUrl: libraryProject.pdfUrl || "",
-            videoUrl: libraryProject.videoUrl || "",
+            outputs: Array.isArray(libraryProject.outputs) ? libraryProject.outputs.map((output) => ({ ...output })) : [],
             heroImage: libraryProject.heroImage,
             galleryImages: [...libraryProject.galleryImages],
           });

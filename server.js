@@ -349,9 +349,15 @@ function validateProjects(payload) {
       typeof project.venue === "string" &&
       typeof project.summary === "string" &&
       typeof project.description === "string" &&
-      typeof (project.doiUrl || "") === "string" &&
-      typeof (project.pdfUrl || "") === "string" &&
-      typeof (project.videoUrl || "") === "string" &&
+      Array.isArray(project.outputs) &&
+      project.outputs.every(
+        (output) =>
+          output &&
+          typeof output.label === "string" &&
+          typeof output.doiUrl === "string" &&
+          typeof output.pdfUrl === "string" &&
+          typeof output.videoUrl === "string"
+      ) &&
       typeof project.heroImage === "string" &&
       Array.isArray(project.galleryImages) &&
       project.galleryImages.every((image) => typeof image === "string")
@@ -621,6 +627,38 @@ async function purgePrunedPublications() {
   }
 }
 
+function normalizeProjectOutputs(project) {
+  if (Array.isArray(project.outputs)) {
+    return project.outputs.map((output, index) => ({
+      label: output.label || `Paper ${index + 1}`,
+      doiUrl: output.doiUrl || "",
+      pdfUrl: output.pdfUrl || "",
+      videoUrl: output.videoUrl || "",
+    }));
+  }
+
+  const legacyOutputs = [];
+  if (project.doiUrl || project.pdfUrl) {
+    legacyOutputs.push({
+      label: "Paper 1",
+      doiUrl: project.doiUrl || "",
+      pdfUrl: project.pdfUrl || "",
+      videoUrl: "",
+    });
+  }
+
+  if (project.videoUrl) {
+    legacyOutputs.push({
+      label: "Demo Video",
+      doiUrl: "",
+      pdfUrl: "",
+      videoUrl: project.videoUrl || "",
+    });
+  }
+
+  return legacyOutputs;
+}
+
 function normalizeProject(project) {
   return {
     id: project.id || generateContentId("project"),
@@ -628,9 +666,7 @@ function normalizeProject(project) {
     venue: project.venue,
     summary: project.summary,
     description: project.description,
-    doiUrl: project.doiUrl || "",
-    pdfUrl: project.pdfUrl || "",
-    videoUrl: project.videoUrl || "",
+    outputs: normalizeProjectOutputs(project),
     heroImage: project.heroImage || "",
     galleryImages: Array.isArray(project.galleryImages) ? project.galleryImages : [],
   };
@@ -639,7 +675,7 @@ function normalizeProject(project) {
 async function loadProjectLibrary() {
   const { rows } = await pool.query(
     `
-      SELECT id, title, venue, summary, description, doi_url, pdf_url, video_url, hero_image, gallery_images
+      SELECT id, title, venue, summary, description, outputs, doi_url, pdf_url, video_url, hero_image, gallery_images
       FROM projects_master
       ORDER BY updated_at DESC, created_at DESC
     `
@@ -651,9 +687,12 @@ async function loadProjectLibrary() {
     venue: row.venue,
     summary: row.summary,
     description: row.description,
-    doiUrl: row.doi_url || "",
-    pdfUrl: row.pdf_url || "",
-    videoUrl: row.video_url || "",
+    outputs: normalizeProjectOutputs({
+      outputs: Array.isArray(row.outputs) ? row.outputs : [],
+      doiUrl: row.doi_url || "",
+      pdfUrl: row.pdf_url || "",
+      videoUrl: row.video_url || "",
+    }),
     heroImage: row.hero_image || "",
     galleryImages: Array.isArray(row.gallery_images) ? row.gallery_images : [],
   }));
@@ -672,6 +711,7 @@ async function saveProjectLibraryItems(projects) {
             venue,
             summary,
             description,
+            outputs,
             doi_url,
             pdf_url,
             video_url,
@@ -679,13 +719,14 @@ async function saveProjectLibraryItems(projects) {
             gallery_images,
             updated_at
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, NOW())
+          VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10, $11::jsonb, NOW())
           ON CONFLICT (id)
           DO UPDATE SET
             title = EXCLUDED.title,
             venue = EXCLUDED.venue,
             summary = EXCLUDED.summary,
             description = EXCLUDED.description,
+            outputs = EXCLUDED.outputs,
             doi_url = EXCLUDED.doi_url,
             pdf_url = EXCLUDED.pdf_url,
             video_url = EXCLUDED.video_url,
@@ -699,9 +740,10 @@ async function saveProjectLibraryItems(projects) {
           project.venue,
           project.summary,
           project.description,
-          project.doiUrl,
-          project.pdfUrl,
-          project.videoUrl,
+          JSON.stringify(project.outputs),
+          project.outputs[0]?.doiUrl || "",
+          project.outputs[0]?.pdfUrl || "",
+          project.outputs.find((output) => output.videoUrl)?.videoUrl || "",
           project.heroImage,
           JSON.stringify(project.galleryImages),
         ]
@@ -745,7 +787,7 @@ async function loadProjects() {
 
   const { rows } = await pool.query(
     `
-      SELECT id, title, venue, summary, description, doi_url, pdf_url, video_url, hero_image, gallery_images
+      SELECT id, title, venue, summary, description, outputs, doi_url, pdf_url, video_url, hero_image, gallery_images
       FROM projects_master
       WHERE id = ANY($1::text[])
     `,
@@ -761,9 +803,12 @@ async function loadProjects() {
         venue: row.venue,
         summary: row.summary,
         description: row.description,
-        doiUrl: row.doi_url || "",
-        pdfUrl: row.pdf_url || "",
-        videoUrl: row.video_url || "",
+        outputs: normalizeProjectOutputs({
+          outputs: Array.isArray(row.outputs) ? row.outputs : [],
+          doiUrl: row.doi_url || "",
+          pdfUrl: row.pdf_url || "",
+          videoUrl: row.video_url || "",
+        }),
         heroImage: row.hero_image || "",
         galleryImages: Array.isArray(row.gallery_images) ? row.gallery_images : [],
       },
@@ -796,6 +841,7 @@ async function ensureSchema() {
   await pool.query("ALTER TABLE publications ADD COLUMN IF NOT EXISTS site_slug TEXT");
   await pool.query("UPDATE publications SET site_slug = $1 WHERE site_slug IS NULL OR site_slug = ''", [PRIMARY_SITE_SLUG]);
   await pool.query("CREATE INDEX IF NOT EXISTS publications_site_year_sort_idx ON publications (site_slug, year_sort_order, item_sort_order)");
+  await pool.query("ALTER TABLE projects_master ADD COLUMN IF NOT EXISTS outputs JSONB NOT NULL DEFAULT '[]'::jsonb");
   await pool.query("ALTER TABLE projects_master ADD COLUMN IF NOT EXISTS doi_url TEXT NOT NULL DEFAULT ''");
   await pool.query("ALTER TABLE projects_master ADD COLUMN IF NOT EXISTS pdf_url TEXT NOT NULL DEFAULT ''");
   await pool.query("ALTER TABLE projects_master ADD COLUMN IF NOT EXISTS video_url TEXT NOT NULL DEFAULT ''");

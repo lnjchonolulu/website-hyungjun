@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS projects_master (
   venue TEXT NOT NULL,
   summary TEXT NOT NULL,
   description TEXT NOT NULL,
+  outputs JSONB NOT NULL DEFAULT '[]'::jsonb,
   doi_url TEXT NOT NULL DEFAULT '',
   pdf_url TEXT NOT NULL DEFAULT '',
   video_url TEXT NOT NULL DEFAULT '',

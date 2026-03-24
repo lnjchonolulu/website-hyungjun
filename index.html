@@ -749,6 +749,7 @@
         flex-direction: column;
         gap: 14px;
         align-self: start;
+        height: 100%;
       }
 
       .project-detail-title {
@@ -768,7 +769,8 @@
       }
 
       .project-detail-links {
-        margin-top: 4px;
+        margin-top: auto;
+        padding-top: 16px;
       }
 
       .project-detail-output {
@@ -1953,29 +1955,37 @@
                                     : ""
                                 }
                                 ${
-                                  output.videoUrl
-                                    ? `
-                                    <a
-                                      class="about-link"
-                                      href="${escapeHtml(output.videoUrl)}"
-                                      aria-label="VIDEO"
-                                      target="_blank"
-                                      rel="noreferrer noopener"
-                                    >
-                                      <span class="about-link-label">VIDEO</span>
-                                      <svg class="about-link-arrow" viewBox="0 0 16 16" aria-hidden="true">
-                                        <path d="M3 13L13 3"></path>
-                                        <path d="M8.5 3H13V7.5"></path>
-                                      </svg>
-                                    </a>
-                                  `
-                                    : ""
+                                  ""
                                 }
                               </div>
                             </div>
                           `
                         )
                         .join("")}
+                      ${
+                        project.videoUrl
+                          ? `
+                          <div class="project-detail-output">
+                            <strong class="project-detail-output-label">Video</strong>
+                            <div class="about-links">
+                              <a
+                                class="about-link"
+                                href="${escapeHtml(project.videoUrl)}"
+                                aria-label="Video link"
+                                target="_blank"
+                                rel="noreferrer noopener"
+                              >
+                                <span class="about-link-label">LINK</span>
+                                <svg class="about-link-arrow" viewBox="0 0 16 16" aria-hidden="true">
+                                  <path d="M3 13L13 3"></path>
+                                  <path d="M8.5 3H13V7.5"></path>
+                                </svg>
+                              </a>
+                            </div>
+                          </div>
+                        `
+                          : ""
+                      }
                     </div>`
                   : ""
               }
@@ -2148,6 +2158,7 @@
                     <input class="text-input full" data-project-field="venue" data-index="${index}" value="${escapeHtml(project.venue)}" placeholder="Venue" />
                     <input class="text-input full" data-project-field="summary" data-index="${index}" value="${escapeHtml(project.summary)}" placeholder="Short summary" />
                     <textarea class="text-area full" data-project-field="description" data-index="${index}" placeholder="Detailed description">${escapeHtml(project.description)}</textarea>
+                    <input class="text-input full" data-project-field="videoUrl" data-index="${index}" value="${escapeHtml(project.videoUrl || "")}" placeholder="Video URL (optional)" />
                   </div>
                   <div class="editor-year-head">
                     <div>
@@ -2162,10 +2173,18 @@
                           <div class="editor-grid">
                             <input class="text-input full" data-project-output-field="label" data-index="${index}" data-output-index="${outputIndex}" value="${escapeHtml(output.label || "")}" placeholder="Label (e.g. Paper 1)" />
                             <input class="text-input full" data-project-output-field="doiUrl" data-index="${index}" data-output-index="${outputIndex}" value="${escapeHtml(output.doiUrl || "")}" placeholder="DOI URL (optional)" />
-                            <input class="text-input full" data-project-output-field="pdfUrl" data-index="${index}" data-output-index="${outputIndex}" value="${escapeHtml(output.pdfUrl || "")}" placeholder="PDF URL (optional)" />
-                            <input class="text-input full" data-project-output-field="videoUrl" data-index="${index}" data-output-index="${outputIndex}" value="${escapeHtml(output.videoUrl || "")}" placeholder="VIDEO URL (optional)" />
                           </div>
                           <div class="modal-actions">
+                            <label class="action-btn" for="output-pdf-upload-${index}-${outputIndex}">Upload PDF</label>
+                            <input id="output-pdf-upload-${index}-${outputIndex}" type="file" accept="application/pdf" data-project-upload="output-pdf" data-index="${index}" data-output-index="${outputIndex}" hidden />
+                            ${
+                              output.pdfUrl
+                                ? `
+                                <a class="action-btn ghost" href="${escapeHtml(output.pdfUrl)}" target="_blank" rel="noreferrer noopener">Open PDF</a>
+                                <button class="action-btn ghost editor-danger" type="button" data-remove-project-output-pdf="${index}:${outputIndex}">Remove PDF</button>
+                              `
+                                : ""
+                            }
                             <button class="action-btn ghost" type="button" data-move-project-output-up="${index}:${outputIndex}">Move Up</button>
                             <button class="action-btn ghost" type="button" data-move-project-output-down="${index}:${outputIndex}">Move Down</button>
                             <button class="action-btn ghost editor-danger" type="button" data-remove-project-output="${index}:${outputIndex}">Delete</button>
@@ -2737,7 +2756,6 @@
             label: `Paper ${nextNumber}`,
             doiUrl: "",
             pdfUrl: "",
-            videoUrl: "",
           });
           renderProjectsEditor();
           return;
@@ -2746,6 +2764,22 @@
         if (button.dataset.removeProjectOutput !== undefined) {
           const [projectIndex, outputIndex] = button.dataset.removeProjectOutput.split(":").map(Number);
           projects[projectIndex].outputs.splice(outputIndex, 1);
+          renderProjectsEditor();
+          return;
+        }
+
+        if (button.dataset.removeProjectOutputPdf !== undefined) {
+          const [projectIndex, outputIndex] = button.dataset.removeProjectOutputPdf.split(":").map(Number);
+          const pdfUrl = projects[projectIndex].outputs[outputIndex].pdfUrl;
+          try {
+            if (pdfUrl && /^https?:\/\//.test(pdfUrl)) {
+              await deleteProjectAsset(pdfUrl);
+            }
+          } catch (error) {
+            projectsEditorStatus.textContent = error.message;
+            return;
+          }
+          projects[projectIndex].outputs[outputIndex].pdfUrl = "";
           renderProjectsEditor();
           return;
         }
@@ -2836,6 +2870,11 @@
 
         if (uploadType === "hero") {
           projects[index].heroImage = uploadedUrls[0] || "";
+        } else if (uploadType === "output-pdf") {
+          const outputIndex = Number(input.dataset.outputIndex);
+          if (!Number.isNaN(outputIndex)) {
+            projects[index].outputs[outputIndex].pdfUrl = uploadedUrls[0] || "";
+          }
         } else {
           projects[index].galleryImages.push(...uploadedUrls);
         }

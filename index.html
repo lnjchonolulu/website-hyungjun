@@ -163,8 +163,7 @@
       }
 
       .portrait {
-        width: min(23vw, var(--portrait-max), calc((100vh - var(--page-pad-top) - var(--topbar-height) - var(--home-copy-reserve)) * 0.46));
-        min-width: 164px;
+        width: clamp(170px, min(23vw, calc((100vh - var(--page-pad-top) - var(--topbar-height) - var(--home-copy-reserve)) * 0.46)), var(--portrait-max));
         aspect-ratio: 1 / 1.18;
         object-fit: cover;
         filter: none;
@@ -1095,39 +1094,6 @@
         color: var(--text);
         text-decoration: none;
         border-bottom: 1px solid var(--text);
-      }
-
-      @media (max-height: 980px) and (min-width: 961px) {
-        :root {
-          --portrait-max: 232px;
-          --home-copy-reserve: clamp(190px, 27vh, 300px);
-        }
-
-        .hero-stage {
-          padding-top: max(72px, calc(50vh - var(--page-pad-top) - var(--topbar-height) - 22px));
-          padding-bottom: 12px;
-        }
-
-        .about-row {
-          padding-top: 12px;
-        }
-      }
-
-      @media (max-height: 900px) and (min-width: 961px) {
-        :root {
-          --portrait-max: 214px;
-          --home-copy-reserve: clamp(200px, 29vh, 320px);
-        }
-
-        .hero-stage {
-          padding-top: max(58px, calc(50vh - var(--page-pad-top) - var(--topbar-height) - 34px));
-          padding-bottom: 10px;
-        }
-
-        .about-row {
-          gap: 14px;
-          padding-top: 10px;
-        }
       }
 
       @media (max-height: 760px) {

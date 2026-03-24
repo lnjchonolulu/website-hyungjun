@@ -20,6 +20,7 @@ const R2_BUCKET = process.env.R2_BUCKET;
 const R2_PUBLIC_BASE_URL = process.env.R2_PUBLIC_BASE_URL;
 const SITE_SLUG = slugify(process.env.SITE_SLUG || "hyungjuncho") || "hyungjuncho";
 const PRIMARY_SITE_SLUG = "hyungjuncho";
+const ABOUT_VERSION = 2;
 const COOKIE_NAME = `${SITE_SLUG}_admin_session`;
 const SESSION_MAX_AGE_MS = 1000 * 60 * 60 * 12;
 
@@ -53,7 +54,7 @@ const defaultAbout = {
       details: [],
     },
   ],
-  researchInterests: ["Human-AI Interaction"],
+  researchInterests: ["Human-Computer Interaction", "Human-Centered AI", "Research through Design", "Speculative Design"],
   news: [
     { title: "Two papers accepted to DIS 2026", meta: "March 18, 2026" },
     { title: "Received Best Paper Honorable Mention Award 🏅at CHI 2026", meta: "March 8, 2026" },
@@ -882,6 +883,16 @@ async function ensureSchema() {
     } else {
       await saveAbout(defaultAbout);
     }
+  }
+
+  const aboutVersion = await loadSiteContent("about-version", 0);
+  if (Number(aboutVersion) < ABOUT_VERSION) {
+    const currentAbout = await loadAbout();
+    await saveAbout({
+      ...currentAbout,
+      researchInterests: defaultAbout.researchInterests,
+    });
+    await saveSiteContent("about-version", ABOUT_VERSION);
   }
 
   const projectSelectionRows = await pool.query("SELECT COUNT(*)::int AS count FROM site_content WHERE key = $1", [

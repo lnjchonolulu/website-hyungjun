@@ -2738,16 +2738,6 @@
 
         if (button.dataset.removeProject !== undefined) {
           const projectIndex = Number(button.dataset.removeProject);
-          const project = projects[projectIndex];
-          const imageUrls = [project.heroImage, ...project.galleryImages].filter((url) => /^https?:\/\//.test(url));
-
-          try {
-            await Promise.all(imageUrls.map((url) => deleteProjectAsset(url)));
-          } catch (error) {
-            projectsEditorStatus.textContent = error.message;
-            return;
-          }
-
           projects.splice(projectIndex, 1);
           renderProjectsEditor();
           return;
@@ -2777,15 +2767,6 @@
 
         if (button.dataset.removeProjectOutputPdf !== undefined) {
           const [projectIndex, outputIndex] = button.dataset.removeProjectOutputPdf.split(":").map(Number);
-          const pdfUrl = projects[projectIndex].outputs[outputIndex].pdfUrl;
-          try {
-            if (pdfUrl && /^https?:\/\//.test(pdfUrl)) {
-              await deleteProjectAsset(pdfUrl);
-            }
-          } catch (error) {
-            projectsEditorStatus.textContent = error.message;
-            return;
-          }
           projects[projectIndex].outputs[outputIndex].pdfUrl = "";
           renderProjectsEditor();
           return;
@@ -2814,17 +2795,6 @@
         if (button.dataset.removeProjectImage !== undefined) {
           const [projectIndexRaw, imageIndexRaw] = button.dataset.removeProjectImage.split(":");
           const project = projects[Number(projectIndexRaw)];
-          const imageUrl =
-            imageIndexRaw === "hero" ? project.heroImage : project.galleryImages[Number(imageIndexRaw)];
-
-          try {
-            if (imageUrl && /^https?:\/\//.test(imageUrl)) {
-              await deleteProjectAsset(imageUrl);
-            }
-          } catch (error) {
-            projectsEditorStatus.textContent = error.message;
-            return;
-          }
 
           if (imageIndexRaw === "hero") {
             project.heroImage = "";

@@ -1090,18 +1090,44 @@
         border-bottom: 1px solid var(--text);
       }
 
-      @media (max-height: 880px) {
+      @media (max-height: 980px) and (min-width: 961px) {
         :root {
-          --portrait-max: 205px;
+          --portrait-max: 225px;
         }
 
-        .page {
-          height: 100vh;
+        .hero-stage {
+          padding-top: max(82px, calc(50vh - var(--page-pad-top) - var(--topbar-height) - 34px));
+          padding-bottom: 12px;
         }
 
-        .body-copy {
-          font-size: 0.96rem;
-          line-height: 1.18;
+        .about-row {
+          padding-top: 12px;
+        }
+
+        .hero-copy {
+          font-size: 0.94rem;
+          line-height: 1.16;
+        }
+      }
+
+      @media (max-height: 900px) and (min-width: 961px) {
+        :root {
+          --portrait-max: 210px;
+        }
+
+        .hero-stage {
+          padding-top: max(64px, calc(50vh - var(--page-pad-top) - var(--topbar-height) - 52px));
+          padding-bottom: 10px;
+        }
+
+        .about-row {
+          gap: 14px;
+          padding-top: 10px;
+        }
+
+        .hero-copy {
+          font-size: 0.9rem;
+          line-height: 1.12;
         }
       }
 

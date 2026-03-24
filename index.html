@@ -792,6 +792,7 @@
         min-height: 0;
         position: relative;
         overflow: hidden;
+        margin-top: -26px;
       }
 
       .project-detail-strip-wrap::before,
@@ -827,10 +828,6 @@
       .project-detail-strip.auto-scroll {
         animation: projectDetailStripScroll var(--detail-strip-duration, 24s) linear infinite;
         will-change: transform;
-      }
-
-      .project-detail-strip-wrap:hover .project-detail-strip.auto-scroll {
-        animation-play-state: paused;
       }
 
       .project-detail-thumb {

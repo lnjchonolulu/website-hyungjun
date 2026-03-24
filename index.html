@@ -792,7 +792,8 @@
         min-height: 0;
         position: relative;
         overflow: hidden;
-        margin-top: -26px;
+        margin-top: calc(-1 * var(--topbar-height) + 12px);
+        height: calc(100% + var(--topbar-height) - 12px);
       }
 
       .project-detail-strip-wrap::before,

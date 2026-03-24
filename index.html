@@ -158,21 +158,28 @@
         display: grid;
         grid-template-columns: repeat(12, minmax(0, 1fr));
         gap: 18px;
-        align-items: start;
+        align-items: stretch;
         min-height: 0;
-        padding-top: var(--hero-stage-top);
-        padding-bottom: 18px;
+        position: relative;
+      }
+
+      .portrait-slot {
+        grid-column: 7 / span 2;
+        position: relative;
+        min-height: 0;
+        height: 100%;
       }
 
       .portrait {
-        height: min(calc(100% - var(--hero-stage-top) - var(--portrait-gap)), calc(var(--portrait-max) * 1.18), 29vw);
+        position: absolute;
+        top: var(--hero-stage-top);
+        left: 0;
         width: auto;
+        height: min(calc(100% - var(--hero-stage-top) - var(--portrait-gap)), calc(var(--portrait-max) * 1.18));
+        max-width: min(23vw, var(--portrait-max));
         aspect-ratio: 1 / 1.18;
         object-fit: cover;
         filter: none;
-        grid-column: 7 / span 2;
-        justify-self: start;
-        align-self: start;
       }
 
       .about-row {
@@ -1310,12 +1317,14 @@
 
       <section id="home" class="panel hero-panel active">
         <div class="hero-stage">
+          <div class="portrait-slot">
           <img
             class="portrait"
             src="./hero.jpg"
             alt="Portrait of Hyungjun Cho"
            
           />
+        </div>
         </div>
         <div class="about-row">
           <div class="section-kicker about-links">

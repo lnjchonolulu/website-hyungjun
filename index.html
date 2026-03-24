@@ -1558,6 +1558,40 @@
         });
       }
 
+
+      function trackPageView() {
+        if (typeof window.gtag !== "function") {
+          return;
+        }
+
+        let pagePath = "/";
+        let pageTitle = "Hyungjun Cho";
+
+        if (activeTab === "about") {
+          pagePath = "/about";
+          pageTitle = "About";
+        } else if (activeTab === "publications") {
+          pagePath = "/publications";
+          pageTitle = "Publications";
+        } else if (activeTab === "projects") {
+          pagePath = "/projects";
+          pageTitle = "Projects";
+        } else if (activeTab === "contact") {
+          pagePath = "/contact";
+          pageTitle = "Contact";
+        } else if (activeTab === "project-detail" && projectDetailState) {
+          const detailProject = projects.find((item) => item.id === projectDetailState.projectId);
+          pagePath = `/project/${encodeURIComponent(projectDetailState.projectId)}`;
+          pageTitle = detailProject ? detailProject.title : "Project Detail";
+        }
+
+        window.gtag("event", "page_view", {
+          page_title: pageTitle,
+          page_path: pagePath,
+          page_location: `${window.location.origin}${pagePath}`,
+        });
+      }
+
       function syncChromeForActiveTab() {
         const inDetail = activeTab === "project-detail";
         pageRoot.classList.toggle("detail-mode", inDetail);
@@ -1635,6 +1669,7 @@
         if (shouldUpdateHash) {
           updateHash(tab);
         }
+        trackPageView();
       }
 
       function enterProjectDetail(projectId, { updateHash: shouldUpdateHash = false } = {}) {
@@ -1653,6 +1688,7 @@
         if (shouldUpdateHash) {
           updateHash(`project/${projectId}`);
         }
+        trackPageView();
       }
 
       function exitProjectDetail(resetToTop = false, updateHashOnExit = false) {
@@ -1678,6 +1714,7 @@
         if (updateHashOnExit) {
           updateHash(targetTab);
         }
+        trackPageView();
       }
 
       function routeFromHash() {
@@ -1701,6 +1738,7 @@
           updateEditTrigger(activeTab);
           renderProjectDetail();
           syncChromeForActiveTab();
+          trackPageView();
           return;
         }
 

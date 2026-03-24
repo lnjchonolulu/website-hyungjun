@@ -779,6 +779,13 @@
         gap: 6px;
       }
 
+      .project-detail-output-links {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: 16px;
+        row-gap: 6px;
+      }
+
       .project-detail-output + .project-detail-output {
         margin-top: 10px;
       }
@@ -1915,7 +1922,7 @@
                           (output) => `
                             <div class="project-detail-output">
                               <strong class="project-detail-output-label">${escapeHtml(output.label)}</strong>
-                              <div class="about-links">
+                              <div class="project-detail-output-links">
                                 ${
                                   output.doiUrl
                                     ? `

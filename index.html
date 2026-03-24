@@ -21,6 +21,7 @@
         --topbar-height: clamp(100px, 13vh, 136px);
         --portrait-max: 250px;
         --home-copy-reserve: clamp(190px, 25vh, 280px);
+        --portrait-gap: 18px;
         --publication-right-pad: 26px;
         --project-copy-width: min(10vw, 136px);
         --scroll-fade-size: 34px;
@@ -163,13 +164,16 @@
       }
 
       .portrait {
-        width: clamp(170px, min(23vw, calc((100vh - var(--page-pad-top) - var(--topbar-height) - var(--home-copy-reserve)) * 0.46)), var(--portrait-max));
+        height: min(calc(100% - var(--portrait-gap)), calc(var(--portrait-max) * 1.18), 29vw);
+        width: auto;
+        max-width: min(23vw, var(--portrait-max));
         aspect-ratio: 1 / 1.18;
         object-fit: cover;
         filter: none;
         grid-column: 7 / span 2;
         justify-self: start;
         align-self: start;
+        margin-bottom: var(--portrait-gap);
       }
 
       .about-row {

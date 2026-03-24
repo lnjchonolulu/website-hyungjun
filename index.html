@@ -22,6 +22,7 @@
         --portrait-max: 250px;
         --home-copy-reserve: clamp(190px, 25vh, 280px);
         --portrait-gap: 18px;
+        --hero-stage-top: max(84px, calc(50vh - var(--page-pad-top) - var(--topbar-height)));
         --publication-right-pad: 26px;
         --project-copy-width: min(10vw, 136px);
         --scroll-fade-size: 34px;
@@ -159,12 +160,12 @@
         gap: 18px;
         align-items: start;
         min-height: 0;
-        padding-top: max(84px, calc(50vh - var(--page-pad-top) - var(--topbar-height)));
+        padding-top: var(--hero-stage-top);
         padding-bottom: 18px;
       }
 
       .portrait {
-        height: min(calc(100% - var(--portrait-gap)), calc(var(--portrait-max) * 1.18), 29vw);
+        height: min(calc(100% - var(--hero-stage-top) - var(--portrait-gap)), calc(var(--portrait-max) * 1.18), 29vw);
         width: auto;
         aspect-ratio: 1 / 1.18;
         object-fit: cover;

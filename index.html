@@ -796,6 +796,11 @@
         height: calc(100% + var(--topbar-height) - 12px);
       }
 
+      .project-detail-strip-wrap.static {
+        margin-top: 0;
+        height: 100%;
+      }
+
       .project-detail-strip-wrap::before,
       .project-detail-strip-wrap::after {
         content: "";
@@ -1865,6 +1870,7 @@
         }
         const shouldAutoScroll = gallery.length > 4;
         const stripImages = shouldAutoScroll ? [...gallery, ...gallery] : gallery;
+        const stripWrapClass = shouldAutoScroll ? "project-detail-strip-wrap" : "project-detail-strip-wrap static";
         const stripClass = shouldAutoScroll ? "project-detail-strip auto-scroll" : "project-detail-strip";
         const stripStyle = shouldAutoScroll
           ? `style="--detail-strip-duration: ${Math.max(20, gallery.length * 4)}s;"`
@@ -1879,7 +1885,7 @@
             <div class="project-detail-main">
               <img src="${escapeHtml(projectDetailState.selectedImage)}" alt="${escapeHtml(project.title)}" />
             </div>
-            <div class="project-detail-strip-wrap">
+            <div class="${stripWrapClass}">
               <div class="${stripClass}" ${stripStyle}>
               ${stripImages
                 .map(

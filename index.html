@@ -736,15 +736,15 @@
         display: grid;
         grid-template-columns: repeat(12, minmax(0, 1fr));
         column-gap: 18px;
-        row-gap: 1px;
+        row-gap: 18px;
         height: 100%;
         min-height: 0;
         grid-template-rows: auto minmax(0, 1fr);
-        padding-bottom: 112px;
       }
 
       .project-detail-copy {
-        grid-column: 1 / span 6;
+        grid-column: 1 / span 4;
+        grid-row: 1;
         display: flex;
         flex-direction: column;
         gap: 14px;
@@ -768,35 +768,39 @@
       }
 
       .project-detail-main {
-        grid-column: 7 / -1;
-        grid-row: 1;
-        align-self: start;
+        grid-column: 7 / span 4;
+        grid-row: 1 / span 2;
+        align-self: stretch;
+        min-height: 0;
+        display: flex;
+        align-items: flex-start;
       }
 
       .project-detail-main img {
         display: block;
         width: 100%;
-        max-height: 62vh;
+        max-height: 100%;
         object-fit: contain;
         object-position: left top;
       }
 
       .project-detail-strip {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 18px;
+        grid-column: 11 / span 2;
+        grid-row: 1 / span 2;
         display: flex;
+        flex-direction: column;
         gap: 18px;
-        align-items: end;
-        overflow-x: auto;
-        overflow-y: hidden;
-        padding-bottom: 0;
+        align-items: stretch;
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding-right: 6px;
         scrollbar-gutter: stable;
+        min-height: 0;
       }
 
       .project-detail-thumb {
-        flex: 0 0 calc((100% - 5 * 18px) / 6);
+        flex: 0 0 auto;
+        width: 100%;
         border: 0;
         padding: 0;
         background: transparent;

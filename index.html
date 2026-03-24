@@ -20,6 +20,7 @@
         --page-pad-top: 22px;
         --topbar-height: clamp(100px, 13vh, 136px);
         --portrait-max: 250px;
+        --home-copy-reserve: clamp(190px, 25vh, 280px);
         --publication-right-pad: 26px;
         --project-copy-width: min(10vw, 136px);
         --scroll-fade-size: 34px;
@@ -145,18 +146,24 @@
         min-height: auto;
       }
 
+      .hero-panel.active {
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) auto;
+        height: calc(100vh - var(--page-pad-top) - 20px - var(--topbar-height));
+      }
+
       .hero-stage {
         display: grid;
         grid-template-columns: repeat(12, minmax(0, 1fr));
         gap: 18px;
         align-items: start;
-        min-height: auto;
-        padding-top: max(108px, calc(50vh - var(--page-pad-top) - var(--topbar-height)));
+        min-height: 0;
+        padding-top: max(84px, calc(50vh - var(--page-pad-top) - var(--topbar-height)));
         padding-bottom: 18px;
       }
 
       .portrait {
-        width: min(23vw, var(--portrait-max));
+        width: min(23vw, var(--portrait-max), calc((100vh - var(--page-pad-top) - var(--topbar-height) - var(--home-copy-reserve)) * 0.46));
         min-width: 164px;
         aspect-ratio: 1 / 1.18;
         object-fit: cover;
@@ -1092,42 +1099,34 @@
 
       @media (max-height: 980px) and (min-width: 961px) {
         :root {
-          --portrait-max: 225px;
+          --portrait-max: 232px;
+          --home-copy-reserve: clamp(190px, 27vh, 300px);
         }
 
         .hero-stage {
-          padding-top: max(82px, calc(50vh - var(--page-pad-top) - var(--topbar-height) - 34px));
+          padding-top: max(72px, calc(50vh - var(--page-pad-top) - var(--topbar-height) - 22px));
           padding-bottom: 12px;
         }
 
         .about-row {
           padding-top: 12px;
         }
-
-        .hero-copy {
-          font-size: 0.94rem;
-          line-height: 1.16;
-        }
       }
 
       @media (max-height: 900px) and (min-width: 961px) {
         :root {
-          --portrait-max: 210px;
+          --portrait-max: 214px;
+          --home-copy-reserve: clamp(200px, 29vh, 320px);
         }
 
         .hero-stage {
-          padding-top: max(64px, calc(50vh - var(--page-pad-top) - var(--topbar-height) - 52px));
+          padding-top: max(58px, calc(50vh - var(--page-pad-top) - var(--topbar-height) - 34px));
           padding-bottom: 10px;
         }
 
         .about-row {
           gap: 14px;
           padding-top: 10px;
-        }
-
-        .hero-copy {
-          font-size: 0.9rem;
-          line-height: 1.12;
         }
       }
 

@@ -885,9 +885,12 @@ async function ensureSchema() {
     }
   }
 
+  const currentAbout = await loadAbout();
   const aboutVersion = await loadSiteContent("about-version", 0);
-  if (Number(aboutVersion) < ABOUT_VERSION) {
-    const currentAbout = await loadAbout();
+  const interestsChanged =
+    JSON.stringify(Array.isArray(currentAbout.researchInterests) ? currentAbout.researchInterests : []) !==
+    JSON.stringify(defaultAbout.researchInterests);
+  if (Number(aboutVersion) < ABOUT_VERSION || interestsChanged) {
     await saveAbout({
       ...currentAbout,
       researchInterests: defaultAbout.researchInterests,

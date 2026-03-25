@@ -2759,11 +2759,23 @@
       async function saveProjects() {
         try {
           const normalizedProjects = projects.map((project) => ({
-            ...project,
-            outputs: Array.isArray(project.outputs) ? project.outputs : [],
-            videoUrl: project.videoUrl || "",
-            heroImage: project.heroImage || "",
-            galleryImages: Array.isArray(project.galleryImages) ? project.galleryImages : [],
+            id: String(project?.id || `project-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
+            title: String(project?.title || ""),
+            venue: String(project?.venue || ""),
+            summary: String(project?.summary || ""),
+            description: String(project?.description || ""),
+            outputs: Array.isArray(project?.outputs)
+              ? project.outputs.map((output, outputIndex) => ({
+                  label: String(output?.label || `Paper ${outputIndex + 1}`),
+                  doiUrl: String(output?.doiUrl || ""),
+                  pdfUrl: String(output?.pdfUrl || ""),
+                }))
+              : [],
+            videoUrl: String(project?.videoUrl || ""),
+            heroImage: String(project?.heroImage || ""),
+            galleryImages: Array.isArray(project?.galleryImages)
+              ? project.galleryImages.map((image) => String(image || "")).filter(Boolean)
+              : [],
           }));
           const payload = await requestJson(`${API_BASE}/projects`, {
             method: "PUT",

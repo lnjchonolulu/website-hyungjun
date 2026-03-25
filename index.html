@@ -1301,20 +1301,21 @@
           grid-template-columns: 1fr auto;
           gap: 10px 14px;
           min-height: auto;
-          align-items: start;
+          align-items: center;
+          margin-bottom: 14px;
         }
 
         .brand {
-          font-size: clamp(1.95rem, 8.8vw, 2.75rem);
+          font-size: clamp(1.72rem, 7.8vw, 2.42rem);
           grid-column: 1;
-          max-width: 10.8ch;
+          max-width: 12ch;
         }
 
         .nav-toggle {
           display: inline-flex;
           grid-column: 2;
           grid-row: 1;
-          margin-top: 6px;
+          margin-top: 0;
         }
 
         .nav {
@@ -1410,7 +1411,7 @@
         .hero-stage {
           display: block;
           min-height: auto;
-          padding: 12px 0 0;
+          padding: 22px 0 0;
         }
 
         .portrait-slot {
@@ -1495,7 +1496,12 @@
 
         .project-copy {
           text-align: left;
-          max-width: var(--mobile-portrait-width);
+          width: var(--mobile-portrait-width);
+          max-width: 100%;
+          justify-self: start;
+          align-self: start;
+          padding-bottom: 0;
+          border-bottom: 0;
         }
 
         .about-panel {

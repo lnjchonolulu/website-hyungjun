@@ -2758,9 +2758,16 @@
 
       async function saveProjects() {
         try {
+          const normalizedProjects = projects.map((project) => ({
+            ...project,
+            outputs: Array.isArray(project.outputs) ? project.outputs : [],
+            videoUrl: project.videoUrl || "",
+            heroImage: project.heroImage || "",
+            galleryImages: Array.isArray(project.galleryImages) ? project.galleryImages : [],
+          }));
           const payload = await requestJson(`${API_BASE}/projects`, {
             method: "PUT",
-            body: JSON.stringify({ projects }),
+            body: JSON.stringify({ projects: normalizedProjects }),
           });
           projects = payload.projects;
           projectLibrary = payload.library || [];
@@ -2951,6 +2958,7 @@
           summary: "",
           description: "",
           outputs: [],
+          videoUrl: "",
           heroImage: "",
           galleryImages: [],
         });

@@ -925,6 +925,10 @@
         height: auto;
       }
 
+      .project-detail-mobile-gallery {
+        display: none;
+      }
+
       @keyframes projectDetailStripScroll {
         from {
           transform: translateY(0);
@@ -1632,6 +1636,18 @@
           aspect-ratio: 1 / 1;
           object-fit: cover;
         }
+
+        .project-detail-mobile-gallery {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .project-detail-mobile-gallery img {
+          display: block;
+          width: 100%;
+          height: auto;
+        }
       }
     </style>
     <!-- Google tag (gtag.js) -->
@@ -2313,6 +2329,7 @@
         }
 
         const gallery = [project.heroImage, ...project.galleryImages].filter(Boolean);
+        const isMobileDetail = window.matchMedia("(max-width: 640px)").matches;
         if (!projectDetailState.selectedImage) {
           projectDetailState.selectedImage = project.heroImage || gallery[0] || "";
         }
@@ -2325,93 +2342,113 @@
           ? `style="--detail-strip-duration: ${Math.max(20, gallery.length * 4)}s;"`
           : "";
 
-        projectDetailRender.innerHTML = `
-          <div class="project-detail-grid">
-            <div class="project-detail-copy">
-              <h2 class="project-detail-title">${escapeHtml(project.title)}</h2>
-              <p class="project-detail-description">${escapeHtml(project.description || project.summary)}</p>
-              ${
-                projectOutputs.length
-                  ? `<div class="section-kicker about-links project-detail-links">
-                      ${projectOutputs
-                        .map(
-                          (output) => `
-                            <div class="project-detail-output">
-                              <strong class="project-detail-output-label">${escapeHtml(output.label)}</strong>
-                              <div class="project-detail-output-links">
-                                ${
-                                  output.doiUrl
-                                    ? `
-                                    <a
-                                      class="about-link"
-                                      href="${escapeHtml(output.doiUrl)}"
-                                      aria-label="DOI"
-                                      target="_blank"
-                                      rel="noreferrer noopener"
-                                    >
-                                      <span class="about-link-label">DOI</span>
-                                      <svg class="about-link-arrow" viewBox="0 0 16 16" aria-hidden="true">
-                                        <path d="M3 13L13 3"></path>
-                                        <path d="M8.5 3H13V7.5"></path>
-                                      </svg>
-                                    </a>
-                                  `
-                                    : ""
-                                }
-                                ${
-                                  output.pdfUrl
-                                    ? `
-                                    <a
-                                      class="about-link"
-                                      href="${escapeHtml(output.pdfUrl)}"
-                                      aria-label="PDF"
-                                      target="_blank"
-                                      rel="noreferrer noopener"
-                                    >
-                                      <span class="about-link-label">PDF</span>
-                                      <svg class="about-link-arrow" viewBox="0 0 16 16" aria-hidden="true">
-                                        <path d="M3 13L13 3"></path>
-                                        <path d="M8.5 3H13V7.5"></path>
-                                      </svg>
-                                    </a>
-                                  `
-                                    : ""
-                                }
-                                ${
-                                  ""
-                                }
-                              </div>
-                            </div>
-                          `
-                        )
-                        .join("")}
-                      ${
-                        project.videoUrl
-                          ? `
-                          <div class="project-detail-output">
-                            <strong class="project-detail-output-label">Video</strong>
-                            <div class="about-links">
+        const outputsHtml =
+          projectOutputs.length || project.videoUrl
+            ? `<div class="section-kicker about-links project-detail-links">
+                ${projectOutputs
+                  .map(
+                    (output) => `
+                      <div class="project-detail-output">
+                        <strong class="project-detail-output-label">${escapeHtml(output.label)}</strong>
+                        <div class="project-detail-output-links">
+                          ${
+                            output.doiUrl
+                              ? `
                               <a
                                 class="about-link"
-                                href="${escapeHtml(project.videoUrl)}"
-                                aria-label="Video link"
+                                href="${escapeHtml(output.doiUrl)}"
+                                aria-label="DOI"
                                 target="_blank"
                                 rel="noreferrer noopener"
                               >
-                                <span class="about-link-label">LINK</span>
+                                <span class="about-link-label">DOI</span>
                                 <svg class="about-link-arrow" viewBox="0 0 16 16" aria-hidden="true">
                                   <path d="M3 13L13 3"></path>
                                   <path d="M8.5 3H13V7.5"></path>
                                 </svg>
                               </a>
-                            </div>
-                          </div>
-                        `
-                          : ""
-                      }
-                    </div>`
-                  : ""
-              }
+                            `
+                              : ""
+                          }
+                          ${
+                            output.pdfUrl
+                              ? `
+                              <a
+                                class="about-link"
+                                href="${escapeHtml(output.pdfUrl)}"
+                                aria-label="PDF"
+                                target="_blank"
+                                rel="noreferrer noopener"
+                              >
+                                <span class="about-link-label">PDF</span>
+                                <svg class="about-link-arrow" viewBox="0 0 16 16" aria-hidden="true">
+                                  <path d="M3 13L13 3"></path>
+                                  <path d="M8.5 3H13V7.5"></path>
+                                </svg>
+                              </a>
+                            `
+                              : ""
+                          }
+                        </div>
+                      </div>
+                    `
+                  )
+                  .join("")}
+                ${
+                  project.videoUrl
+                    ? `
+                    <div class="project-detail-output">
+                      <strong class="project-detail-output-label">Video</strong>
+                      <div class="about-links">
+                        <a
+                          class="about-link"
+                          href="${escapeHtml(project.videoUrl)}"
+                          aria-label="Video link"
+                          target="_blank"
+                          rel="noreferrer noopener"
+                        >
+                          <span class="about-link-label">LINK</span>
+                          <svg class="about-link-arrow" viewBox="0 0 16 16" aria-hidden="true">
+                            <path d="M3 13L13 3"></path>
+                            <path d="M8.5 3H13V7.5"></path>
+                          </svg>
+                        </a>
+                      </div>
+                    </div>
+                  `
+                    : ""
+                }
+              </div>`
+            : "";
+
+        if (isMobileDetail) {
+          projectDetailRender.innerHTML = `
+            <div class="project-detail-grid">
+              <div class="project-detail-copy">
+                <h2 class="project-detail-title">${escapeHtml(project.title)}</h2>
+                <p class="project-detail-description">${escapeHtml(project.description || project.summary)}</p>
+                ${outputsHtml}
+              </div>
+              <div class="project-detail-mobile-gallery">
+                ${gallery
+                  .map(
+                    (image, index) => `
+                      <img src="${escapeHtml(image)}" alt="${escapeHtml(project.title)} detail ${index + 1}" />
+                    `
+                  )
+                  .join("")}
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        projectDetailRender.innerHTML = `
+          <div class="project-detail-grid">
+            <div class="project-detail-copy">
+              <h2 class="project-detail-title">${escapeHtml(project.title)}</h2>
+              <p class="project-detail-description">${escapeHtml(project.description || project.summary)}</p>
+              ${outputsHtml}
             </div>
             <div class="project-detail-main">
               <img src="${escapeHtml(projectDetailState.selectedImage)}" alt="${escapeHtml(project.title)}" />

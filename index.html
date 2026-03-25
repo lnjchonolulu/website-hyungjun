@@ -1305,9 +1305,9 @@
         }
 
         .brand {
-          font-size: clamp(2.5rem, 13vw, 3.6rem);
+          font-size: clamp(2.2rem, 10.4vw, 3.1rem);
           grid-column: 1;
-          max-width: 8.2ch;
+          max-width: 9.5ch;
         }
 
         .nav-toggle {
@@ -1321,22 +1321,66 @@
           display: none;
           grid-column: 1 / -1;
           grid-row: 2;
-          width: 100%;
-          padding-top: 2px;
+          width: auto;
+          padding-top: 0;
         }
 
         .page.nav-open .nav {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 8px;
+          display: flex;
+          position: fixed;
+          inset: 0;
+          z-index: 20;
+          background: rgba(231, 231, 234, 0.96);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          flex-direction: column;
+          align-items: flex-start;
+          justify-content: center;
+          gap: 18px;
+          padding: 24px 18px 24px 14px;
         }
 
         .nav-btn {
           width: fit-content;
+          font-size: 1.25rem;
         }
 
         .nav-btn::before {
-          inset: -6px -10px;
+          display: none;
+        }
+
+        .page.nav-open .nav-toggle {
+          position: fixed;
+          top: 18px;
+          right: 16px;
+          z-index: 21;
+        }
+
+        .page.nav-open .nav-toggle-lines {
+          gap: 0;
+          width: 22px;
+          height: 22px;
+          position: relative;
+        }
+
+        .page.nav-open .nav-toggle-lines span {
+          position: absolute;
+          top: 50%;
+          left: 0;
+          width: 22px;
+          transform-origin: center;
+        }
+
+        .page.nav-open .nav-toggle-lines span:nth-child(1) {
+          transform: translateY(-50%) rotate(45deg);
+        }
+
+        .page.nav-open .nav-toggle-lines span:nth-child(2) {
+          opacity: 0;
+        }
+
+        .page.nav-open .nav-toggle-lines span:nth-child(3) {
+          transform: translateY(-50%) rotate(-45deg);
         }
 
         .publication-panel,
@@ -1405,6 +1449,11 @@
         .body-copy:first-of-type {
           border-top: 1px solid var(--line);
           padding-top: 14px;
+        }
+
+        #home .contact-intro,
+        #home .contact-copy {
+          display: none !important;
         }
 
         .hero-copy {
